@@ -159,10 +159,10 @@ public class CountingMR {
         }*/
         //mapper
         j2.setMapOutputKeyClass(Text.class);
-        j2.setMapOutputValueClass(Object.class);
+        j2.setMapOutputValueClass(Filter.class);
         //reducer
         j2.setOutputKeyClass(Text.class);
-        j2.setOutputValueClass(Object.class);
+        j2.setOutputValueClass(Filter.class);
         Path outputPath1=new Path("/user/Pepp/Bloom");
         FileOutputFormat.setOutputPath(j2, outputPath1);
         System.exit(j2.waitForCompletion(true)?0:1);

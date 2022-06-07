@@ -8,7 +8,6 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.*;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -112,7 +111,7 @@ public class CountingMR {
         j1.setMapOutputValueClass(Text.class);
         j1.setOutputKeyClass(Text.class);
         j1.setOutputValueClass(Text.class);
-        Path outputPath=new Path("/dom/Counting");
+        Path outputPath=new Path("/user/Pepp/Counting");
 
         FileInputFormat.addInputPath(j1,new Path(otherArgs[0]));
         FileOutputFormat.setOutputPath(j1,outputPath);
@@ -123,7 +122,7 @@ public class CountingMR {
         //Inserisco in un arraylist i valori in output dal primo reducer
         // rating   n   m   k
         ArrayList<String> listValues = new ArrayList<>();
-        listValues= pickFile("hdfs:///dom/Counting/part-r-00000");
+        listValues= pickFile("hdfs:///user/Pepp/Counting/part-r-00000");
         //Creo array con tutti i valori di m dei 10 filtri
         //l'indice +1 equivale al rating
         int[] takeValues = new int[10];
@@ -160,11 +159,11 @@ public class CountingMR {
         }*/
         //mapper
         j2.setMapOutputKeyClass(Text.class);
-        j2.setMapOutputValueClass(Filter.class);
+        j2.setMapOutputValueClass(Object.class);
         //reducer
         j2.setOutputKeyClass(Text.class);
-        j2.setOutputValueClass(Filter.class);
-        Path outputPath1=new Path("/dom/final");
+        j2.setOutputValueClass(Object.class);
+        Path outputPath1=new Path("/user/Pepp/Bloom");
         FileOutputFormat.setOutputPath(j2, outputPath1);
         System.exit(j2.waitForCompletion(true)?0:1);
 

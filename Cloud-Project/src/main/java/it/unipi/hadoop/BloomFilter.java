@@ -20,7 +20,7 @@ public class BloomFilter
 {
 
 
-    public static class BloomFilterMapper extends Mapper<Object, Text, Text, Filter>
+    public static class BloomFilterMapper extends Mapper<Object, Text, Text, Object>
     {
         Filter[] arrayf = new Filter[10];
         Filter f1 ;
@@ -182,7 +182,7 @@ public class BloomFilter
         }
      */
 
-    public static class BloomFilterReducer extends Reducer<Text, Filter, Text, Filter> {
+    public static class BloomFilterReducer extends Reducer<Text, Object, Text, Object> {
         private static String FILTER_OUTPUT_FILE_CONF = "bloomfilter.output.file";
         Filter[] arrayf = new Filter[10];
         Filter f1 ;
@@ -213,68 +213,68 @@ public class BloomFilter
         }
 
 
-        public void reduce(Text key, Iterable<Filter> values, Context context) throws IOException, InterruptedException {
+        public void reduce(Text key, Iterable<Object> values, Context context) throws IOException, InterruptedException {
             // Merge all filters by logical OR
             Path outputFilePath = new Path(context.getConfiguration().get(FILTER_OUTPUT_FILE_CONF));
             FileSystem fs = FileSystem.get(context.getConfiguration());
 
 
             if(key.toString()=="1"){
-                for (Filter value : values) {
-                    f1.or(value);
+                for (Object value : values) {
+                    f1.or((Filter) value);
                 }
                 context.write(key, f1);
             }else if(key.toString()=="2"){
-                for (Filter value : values) {
-                    f2.or(value);
+                for (Object value : values) {
+                    f2.or((Filter) value);
                 }
                 context.write(key, f2);
             }else if(key.toString()=="3"){
 
-                for (Filter value : values) {
-                    f3.or(value);
+                for (Object value : values) {
+                    f3.or((Filter) value);
                 }
                 context.write(key, f3);
             }else if(key.toString()=="4"){
 
-                for (Filter value : values) {
-                    f4.or(value);
+                for (Object value : values) {
+                    f4.or((Filter) value);
                 }
                 context.write(key, f4);
             }else if(key.toString()=="5"){
 
-                for (Filter value : values) {
-                    f5.or(value);
+                for (Object value : values) {
+                    f5.or((Filter) value);
                 }
                 context.write(key, f5);
             }else if(key.toString()=="6"){
 
-                for (Filter value : values) {
-                    f6.or(value);
+                for (Object value : values) {
+                    f6.or((Filter) value);
                 }
                 context.write(key, f6);
             }else if(key.toString()=="7"){
 
-                for (Filter value : values) {
-                    f7.or(value);
+                for (Object value : values) {
+                    f7.or((Filter) value);
                 }
                 context.write(key, f7);
             }else if(key.toString()=="8"){
 
-                for (Filter value : values) {
-                    f8.or(value);
+                for (Object value : values) {
+                    f8.or((Filter) value);
                 }
                 context.write(key, f8);
             }else if(key.toString()=="9"){
 
-                for (Filter value : values) {
-                    f9.or(value);
+                for (Object value : values) {
+                    f9.or((Filter) value);
                 }
                 context.write(key, f9);
             }else if(key.toString()=="10"){
 
-                for (Filter value : values) {
-                    f10.or(value);
+                for (Object value : values) {
+                    f10.or((Filter) value);
                 }
                 context.write(key, f10);
             }

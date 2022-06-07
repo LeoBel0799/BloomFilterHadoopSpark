@@ -18,37 +18,35 @@ import org.apache.hadoop.util.hash.MurmurHash;
 import org.apache.hadoop.yarn.webapp.hamlet2.Hamlet;
 
 
-public class BloomFilter
-{
+public class BloomFilter {
 
 
-    public static class BloomFilterMapper extends Mapper<Object, Text, Text, Filter>
-    {
-        Filter f1 ;
-        Filter f2 ;
-        Filter f3 ;
-        Filter f4;
-        Filter f5;
-        Filter f6 ;
-        Filter f7 ;
-        Filter f8;
-        Filter f9;
-        Filter f10 ;
-        public void setup(Context context) throws IOException, InterruptedException
-        {
+    public static class BloomFilterMapper extends Mapper<Object, Text, Text, Filter> {
+        private Filter ff1 ;
+        private Filter ff2 ;
+        private Filter ff3 ;
+        private Filter ff4;
+        private Filter ff5;
+        private Filter ff6 ;
+        private Filter ff7 ;
+        private Filter ff8;
+        private Filter ff9;
+        private Filter ff10 ;
+
+        public void setup(Context context) throws IOException, InterruptedException {
             //prendo i valori di m dalla conf del primo mapreduce
             //creo 10 bloom filter dimensionati
             Configuration conf = context.getConfiguration();
-            f2 = new Filter(Integer.parseInt(conf.get("m1")),0.01);
-            f2 = new Filter(Integer.parseInt(conf.get("m2")),0.01);
-            f3 = new Filter(Integer.parseInt(conf.get("m3")),0.01);
-            f4 = new Filter(Integer.parseInt(conf.get("m4")),0.01);
-            f5 = new Filter(Integer.parseInt(conf.get("m5")),0.01);
-            f6 = new Filter(Integer.parseInt(conf.get("m6")),0.01);
-            f7 = new Filter(Integer.parseInt(conf.get("m7")),0.01);
-            f8 = new Filter(Integer.parseInt(conf.get("m8")),0.01);
-            f9 = new Filter(Integer.parseInt(conf.get("m9")),0.01);
-            f10 = new Filter(Integer.parseInt(conf.get("m10")),0.01);
+             ff1 = new Filter(Integer.parseInt(conf.get("m1.0")),Integer.parseInt(conf.get("n1.0")),0.01,1);
+             ff2 = new Filter(Integer.parseInt(conf.get("m2.0")),Integer.parseInt(conf.get("n2.0")),0.01,2);
+             ff3 = new Filter(Integer.parseInt(conf.get("m3.0")),Integer.parseInt(conf.get("n3.0")),0.01,3);
+             ff4 = new Filter(Integer.parseInt(conf.get("m4.0")),Integer.parseInt(conf.get("n4.0")),0.01,4);
+             ff5 = new Filter(Integer.parseInt(conf.get("m5.0")),Integer.parseInt(conf.get("n5.0")),0.01,5);
+             ff6 = new Filter(Integer.parseInt(conf.get("m6.0")),Integer.parseInt(conf.get("n6.0")),0.01,6);
+             ff7 = new Filter(Integer.parseInt(conf.get("m7.0")),Integer.parseInt(conf.get("n7.0")),0.01,7);
+             ff8 = new Filter(Integer.parseInt(conf.get("m8.0")),Integer.parseInt(conf.get("n8.0")),0.01,8);
+             ff9 = new Filter(Integer.parseInt(conf.get("m9.0")),Integer.parseInt(conf.get("n9.0")),0.01,9);
+             ff10 = new Filter(Integer.parseInt(conf.get("m10.0")),Integer.parseInt(conf.get("n10.0")),0.01,10);
         }
 
         @Override
@@ -58,45 +56,45 @@ public class BloomFilter
             String movieId = record[0];
             String rating  = Double.toString(Math.round(Double.parseDouble(record[1])));
             if(rating=="1"){
-                this.f1.add(movieId);
+                this.ff1.add(movieId);
                 Text testo = new Text(rating);
-                context.write(testo, f1);
+                context.write(testo, ff1);
             }else if (rating=="2"){
-                this.f2.add(movieId);
+                this.ff2.add(movieId);
                 Text testo = new Text(rating);
-                context.write(testo, f2);
+                context.write(testo, ff2);
             }else if (rating=="3"){
-                this.f3.add(movieId);
+                this.ff3.add(movieId);
                 Text testo = new Text(rating);
-                context.write(testo, f3);
+                context.write(testo, ff3);
             }else if (rating=="4"){
-                this.f4.add(movieId);
+                this.ff4.add(movieId);
                 Text testo = new Text(rating);
-                context.write(testo, f4);
+                context.write(testo, ff4);
             }else if (rating=="5"){
-                this.f5.add(movieId);
+                this.ff5.add(movieId);
                 Text testo = new Text(rating);
-                context.write(testo, f5);
+                context.write(testo, ff5);
             }else if (rating=="6"){
-                this.f6.add(movieId);
+                this.ff6.add(movieId);
                 Text testo = new Text(rating);
-                context.write(testo, f6);
+                context.write(testo, ff6);
             }else if (rating=="7"){
-                this.f7.add(movieId);
+                this.ff7.add(movieId);
                 Text testo = new Text(rating);
-                context.write(testo, f7);
+                context.write(testo, ff7);
             }else if (rating=="8"){
-                this.f8.add(movieId);
+                this.ff8.add(movieId);
                 Text testo = new Text(rating);
-                context.write(testo, f8);
+                context.write(testo, ff8);
             }else if (rating=="9"){
-                this.f9.add(movieId);
+                this.ff9.add(movieId);
                 Text testo = new Text(rating);
-                context.write(testo, f9);
+                context.write(testo, ff9);
             }else{
-                this.f10.add(movieId);
+                this.ff10.add(movieId);
                 Text testo = new Text(rating);
-                context.write(testo, f10);
+                context.write(testo, ff10);
             }
 
         }
@@ -110,31 +108,31 @@ public class BloomFilter
     public static class BloomFilterReducer extends Reducer<Text, Filter, Text, Object> {
         private static String FILTER_OUTPUT_FILE_CONF = "bloomfilter.output.file";
 
-        Filter f1 ;
-        Filter f2 ;
-        Filter f3 ;
-        Filter f4;
-        Filter f5;
-        Filter f6 ;
-        Filter f7 ;
-        Filter f8;
-        Filter f9;
-        Filter f10 ;
+        private Filter f1 ;
+        private Filter f2 ;
+        private Filter f3 ;
+        private Filter f4;
+        private Filter f5;
+        private Filter f6 ;
+        private Filter f7 ;
+        private Filter f8;
+        private Filter f9;
+        private Filter f10 ;
 
-        public void setup(Context context) throws IOException, InterruptedException {
+        public void setup(Reducer.Context context) throws IOException, InterruptedException {
             //prendo i valori di m dalla conf del primo mapreduce
             //creo 10 bloom filter dimensionati
             Configuration conf = context.getConfiguration();
-            f1 = new Filter(Integer.parseInt(conf.get("m1")),0.01);
-            f2 = new Filter(Integer.parseInt(conf.get("m2")),0.01);
-            f3 = new Filter(Integer.parseInt(conf.get("m3")),0.01);
-            f4 = new Filter(Integer.parseInt(conf.get("m4")),0.01);
-            f5 = new Filter(Integer.parseInt(conf.get("m5")),0.01);
-            f6 = new Filter(Integer.parseInt(conf.get("m6")),0.01);
-            f7 = new Filter(Integer.parseInt(conf.get("m7")),0.01);
-            f8 = new Filter(Integer.parseInt(conf.get("m8")),0.01);
-            f9 = new Filter(Integer.parseInt(conf.get("m9")),0.01);
-            f10 = new Filter(Integer.parseInt(conf.get("m10")),0.01);
+            f1 = new Filter(Integer.parseInt(conf.get("m1.0")),Integer.parseInt(conf.get("n1.0")),0.01,1);
+            f2 = new Filter(Integer.parseInt(conf.get("m2.0")),Integer.parseInt(conf.get("n2.0")),0.01,2);
+            f3 = new Filter(Integer.parseInt(conf.get("m3.0")),Integer.parseInt(conf.get("n3.0")),0.01,3);
+            f4 = new Filter(Integer.parseInt(conf.get("m4.0")),Integer.parseInt(conf.get("n4.0")),0.01,4);
+            f5 = new Filter(Integer.parseInt(conf.get("m5.0")),Integer.parseInt(conf.get("n5.0")),0.01,5);
+            f6 = new Filter(Integer.parseInt(conf.get("m6.0")),Integer.parseInt(conf.get("n6.0")),0.01,6);
+            f7 = new Filter(Integer.parseInt(conf.get("m7.0")),Integer.parseInt(conf.get("n7.0")),0.01,7);
+            f8 = new Filter(Integer.parseInt(conf.get("m8.0")),Integer.parseInt(conf.get("n8.0")),0.01,8);
+            f9 = new Filter(Integer.parseInt(conf.get("m9.0")),Integer.parseInt(conf.get("n9.0")),0.01,9);
+            f10 = new Filter(Integer.parseInt(conf.get("m10.0")),Integer.parseInt(conf.get("n10.0")),0.01,10);
         }
 
 
@@ -201,42 +199,6 @@ public class BloomFilter
                 }
                 context.write(key, f10);
             }
-
-
-
-
-
-            /*
-            BooleanArrayWritable array = new BooleanArrayWritable();
-            ArrayList<IntArrayWritable> finalList = new ArrayList<>();
-            while (posValue.iterator().hasNext()){
-                finalList.add(posValue.iterator().next());
-            }
-
-            Configuration conf = context.getConfiguration();
-            String name = "m" + key;
-            BooleanWritable[] bitArray = new BooleanWritable[Integer.parseInt(conf.get(name))];
-
-
-            for(IntArrayWritable tmp : finalList) {
-                for (int i = 0; i < tmp.get().length; i++) {
-                    int position = Integer.parseInt(tmp.get()[i].toString());
-                    bitArray[position] = new BooleanWritable(true);
-                }
-            }
-
-
-
-
-
-            for(int i=0;i<=bitArray.length;i++){
-                if(bitArray[i].get())
-                this.arrayValori
-            }
-
-            array.set(bitArray);
-            context.write(key, array);
-            */
         }
     }
 

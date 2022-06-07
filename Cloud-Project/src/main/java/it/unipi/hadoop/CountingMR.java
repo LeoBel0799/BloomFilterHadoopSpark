@@ -126,11 +126,15 @@ public class CountingMR {
         //Creo array con tutti i valori di m dei 10 filtri
         //l'indice +1 equivale al rating
         int[] takeValues = new int[10];
+        int[] takeValuesDim = new int[10];
         for (int i=0; i<listValues.size(); i++){
             String row = listValues.get(i);
             int index = (int)Double.parseDouble(String.valueOf(row.split("\t")[0]))-1;
             takeValues[index] = Integer.parseInt(row.split("\t")[2]);
+            takeValuesDim[index] = Integer.parseInt(row.split("\t")[1]);
         }
+
+
 
         Configuration conf2=new Configuration();
         Job j2=Job.getInstance(conf2);
@@ -138,9 +142,10 @@ public class CountingMR {
         j2.setMapperClass(BloomFilter.BloomFilterMapper.class);
         j2.setReducerClass(BloomFilter.BloomFilterReducer.class);
         j2.setInputFormatClass(NLineInputFormat.class);
+        j2.getConfiguration().setStrings("mapreduce.reduce.shuffle.memory.limit.percent", "0.15");
         NLineInputFormat.addInputPath(j2, new Path(otherArgs[0]));
-        //N.tot =1,247,686      155961(8)  311922(4)
-        j2.getConfiguration().setInt("mapreduce.input.lineinputformat.linespermap", 311922);
+        //N.tot =1,247,686      (8)  311922(4)
+        j2.getConfiguration().setInt("mapreduce.input.lineinputformat.linespermap", 50000);
         j2.getConfiguration().setInt("m1.0",takeValues[0] );
         j2.getConfiguration().setInt("m2.0",takeValues[1] );
         j2.getConfiguration().setInt("m3.0",takeValues[2] );
@@ -151,6 +156,16 @@ public class CountingMR {
         j2.getConfiguration().setInt("m8.0",takeValues[7] );
         j2.getConfiguration().setInt("m9.0",takeValues[8] );
         j2.getConfiguration().setInt("m10.0",takeValues[9] );
+        j2.getConfiguration().setInt("n1.0",takeValuesDim[0] );
+        j2.getConfiguration().setInt("n2.0",takeValuesDim[1] );
+        j2.getConfiguration().setInt("n3.0",takeValuesDim[2] );
+        j2.getConfiguration().setInt("n4.0",takeValuesDim[3] );
+        j2.getConfiguration().setInt("n5.0",takeValuesDim[4] );
+        j2.getConfiguration().setInt("n6.0",takeValuesDim[5] );
+        j2.getConfiguration().setInt("n7.0",takeValuesDim[6] );
+        j2.getConfiguration().setInt("n8.0",takeValuesDim[7] );
+        j2.getConfiguration().setInt("n9.0",takeValuesDim[8] );
+        j2.getConfiguration().setInt("n10.0",takeValuesDim[9] );
         /*
         for (int k=0; k< takeValues.length; k++){
             String name = "m" + (k+1);

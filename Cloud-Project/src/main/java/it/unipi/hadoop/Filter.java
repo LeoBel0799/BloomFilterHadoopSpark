@@ -45,7 +45,13 @@ public class Filter implements Writable {
         k = (int) ((m / n) * Math.log(2)) + 1;
         this.bitArray = new BitSet(m);
     }
+    public Filter(){
 
+    }
+
+    public String toString() {
+        return this.bitArray.toString();
+    }
 
     /* Function to add an object */
     public void add(String idFilm) {

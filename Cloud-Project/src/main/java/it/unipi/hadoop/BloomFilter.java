@@ -57,45 +57,46 @@ public class BloomFilter {
             String rating  = Double.toString(Math.round(Double.parseDouble(record[1])));
             if(rating=="1"){
                 this.ff1.add(movieId);
-                Text testo = new Text(rating);
-                context.write(testo, ff1);
             }else if (rating=="2"){
                 this.ff2.add(movieId);
-                Text testo = new Text(rating);
-                context.write(testo, ff2);
             }else if (rating=="3"){
                 this.ff3.add(movieId);
-                Text testo = new Text(rating);
-                context.write(testo, ff3);
             }else if (rating=="4"){
                 this.ff4.add(movieId);
-                Text testo = new Text(rating);
-                context.write(testo, ff4);
             }else if (rating=="5"){
                 this.ff5.add(movieId);
-                Text testo = new Text(rating);
-                context.write(testo, ff5);
             }else if (rating=="6"){
                 this.ff6.add(movieId);
-                Text testo = new Text(rating);
-                context.write(testo, ff6);
             }else if (rating=="7"){
                 this.ff7.add(movieId);
-                Text testo = new Text(rating);
-                context.write(testo, ff7);
             }else if (rating=="8"){
                 this.ff8.add(movieId);
-                Text testo = new Text(rating);
-                context.write(testo, ff8);
             }else if (rating=="9"){
                 this.ff9.add(movieId);
-                Text testo = new Text(rating);
-                context.write(testo, ff9);
             }else{
                 this.ff10.add(movieId);
-                Text testo = new Text(rating);
-                context.write(testo, ff10);
             }
+
+        }
+
+        @Override
+        protected void cleanup(Context context) throws IOException, InterruptedException {
+
+
+
+            // Write the filter to HDFS once all maps are finished
+
+            context.write(new Text("1"),ff1);
+            context.write(new Text("2"),ff2);
+            context.write(new Text("3"),ff3);
+            context.write(new Text("4"),ff4);
+            context.write(new Text("5"),ff5);
+            context.write(new Text("6"),ff6);
+            context.write(new Text("7"),ff7);
+            context.write(new Text("8"),ff8);
+            context.write(new Text("9"),ff9);
+            context.write(new Text("10"),ff10);
+
 
         }
 
@@ -105,9 +106,7 @@ public class BloomFilter {
 
 
 
-    public static class BloomFilterReducer extends Reducer<Text, Filter, Text, Object> {
-        private static String FILTER_OUTPUT_FILE_CONF = "bloomfilter.output.file";
-
+    public static class BloomFilterReducer extends Reducer<Text, Filter, Text, Text> {
         private Filter f1 ;
         private Filter f2 ;
         private Filter f3 ;
@@ -138,7 +137,6 @@ public class BloomFilter {
 
         public void reduce(Text key, Iterable<Filter> values, Context context) throws IOException, InterruptedException {
             // Merge all filters by logical OR
-            Path outputFilePath = new Path(context.getConfiguration().get(FILTER_OUTPUT_FILE_CONF));
             FileSystem fs = FileSystem.get(context.getConfiguration());
 
 
@@ -146,58 +144,58 @@ public class BloomFilter {
                 for (Filter value : values) {
                     f1.or(value);
                 }
-                context.write(key, f1);
+                context.write(key, new Text(f1.toString()));
             }else if(key.toString()=="2"){
                 for (Filter value : values) {
                     f2.or(value);
                 }
-                context.write(key, f2);
+                context.write(key, new Text(f2.toString()));
             }else if(key.toString()=="3"){
 
                 for (Filter value : values) {
                     f3.or(value);
                 }
-                context.write(key, f3);
+                context.write(key, new Text(f3.toString()));
             }else if(key.toString()=="4"){
 
                 for (Filter value : values) {
                     f4.or(value);
                 }
-                context.write(key, f4);
+                context.write(key, new Text(f4.toString()));
             }else if(key.toString()=="5"){
 
                 for (Filter value : values) {
                     f5.or(value);
                 }
-                context.write(key, f5);
+                context.write(key, new Text(f5.toString()));
             }else if(key.toString()=="6"){
 
                 for (Filter value : values) {
                     f6.or(value);
                 }
-                context.write(key, f6);
+                context.write(key, new Text(f6.toString()));
             }else if(key.toString()=="7"){
 
                 for (Filter value : values) {
                     f7.or(value);
                 }
-                context.write(key, f7);
+                context.write(key, new Text(f7.toString()));
             }else if(key.toString()=="8"){
                 for (Filter value : values) {
                     f8.or(value);
                 }
-                context.write(key, f8);
+                context.write(key, new Text(f8.toString()));
             }else if(key.toString()=="9"){
                 for (Filter value : values) {
                     f9.or(value);
                 }
-                context.write(key, f9);
+                context.write(key, new Text(f9.toString()));
             }else if(key.toString()=="10"){
 
                 for (Filter value : values) {
                     f10.or(value);
                 }
-                context.write(key, f10);
+                context.write(key, new Text(f10.toString()));
             }
         }
     }

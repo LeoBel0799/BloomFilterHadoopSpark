@@ -5,17 +5,15 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Writable;
-import org.apache.hadoop.util.hash.Hash;
 import org.apache.hadoop.util.hash.MurmurHash;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Scanner;
-import org.apache.hadoop.util.hash.MurmurHash;
+import java.util.stream.IntStream;
 
 
 /* Class BloomFilter */
@@ -26,6 +24,11 @@ public class Filter implements Writable {
     public int m;   // number of bit in the array
     public int k;   // number of hash function
     public int n;   // number of films to put in the filter of a certain rating
+    public static final int   MAX_VALUE = 0x7fffffff;
+    private transient int wordsUse = 0;
+    private static final int ADDRESS_BITS_PER_WORD = 6;
+    private static final int BITS_PER_WORD = 1 << ADDRESS_BITS_PER_WORD;
+    private static final int BIT_INDEX_MASK = BITS_PER_WORD - 1;
 
     private static final byte[] bitvalues = new byte[] {
             (byte)0x01,
@@ -39,7 +42,7 @@ public class Filter implements Writable {
     };
 
     /* Constructor */
-    public Filter(int m, int n,double pvalue, int rating) throws IOException {
+    public Filter(int m, int n,double pvalue, double rating) throws IOException {
         this.m = m;
         this.n = n;
         k = (int) ((m / n) * Math.log(2)) + 1;
@@ -49,9 +52,13 @@ public class Filter implements Writable {
 
     }
 
+    @Override
     public String toString() {
-        return this.bitArray.toString();
+            final StringBuilder buffer = new StringBuilder(m);
+            IntStream.range(0, m).mapToObj(i -> bitArray.get(i) ? '1' : '0').forEach(buffer::append);
+            return buffer.toString();
     }
+
 
     /* Function to add an object */
     public void add(String idFilm) {
@@ -59,8 +66,8 @@ public class Filter implements Writable {
         //valore 7 perche hash = 7 per tutti i filters
         for(int i =0;i<7;i++){
             //Sets the bit at the specified index to true.
-            int a = Math.abs(hasher.hash(idFilm.getBytes(),9,i*50));
-            this.bitArray.set(((a)%m));
+            int position = Math.abs(hasher.hash(idFilm.getBytes(),9,i*50)%m);
+            this.bitArray.set(position,true);
         }
     }
 
@@ -120,10 +127,10 @@ public class Filter implements Writable {
 
     /* Or for merging filters*/
     public void or(Filter filter) {
-        if(filter == null || filter.m != this.m || filter.k != this.k) {
+        if(filter.m != this.m) {
             throw new IllegalArgumentException("filters cannot be or-ed");
         }
-        bitArray.or((filter).bitArray);
+        this.bitArray.or((filter).bitArray);
     }
 
 

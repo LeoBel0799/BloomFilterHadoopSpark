@@ -145,7 +145,7 @@ public class CountingMR {
         j2.getConfiguration().setStrings("mapreduce.reduce.shuffle.memory.limit.percent", "0.15");
         NLineInputFormat.addInputPath(j2, new Path(otherArgs[0]));
         //N.tot =1,247,686      (8)  311922(4)
-        j2.getConfiguration().setInt("mapreduce.input.lineinputformat.linespermap", 50000);
+        j2.getConfiguration().setInt("mapreduce.input.lineinputformat.linespermap", 311922);
         j2.getConfiguration().setInt("m1.0",takeValues[0] );
         j2.getConfiguration().setInt("m2.0",takeValues[1] );
         j2.getConfiguration().setInt("m3.0",takeValues[2] );
@@ -175,7 +175,7 @@ public class CountingMR {
         //mapper
         j2.setMapOutputKeyClass(Text.class);
         j2.setMapOutputValueClass(Filter.class);
-        //reducer
+       //reducer
         j2.setOutputKeyClass(Text.class);
         j2.setOutputValueClass(Text.class);
         Path outputPath1=new Path("/user/Pepp/Bloom");

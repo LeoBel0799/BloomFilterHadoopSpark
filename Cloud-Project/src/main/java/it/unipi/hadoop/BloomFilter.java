@@ -37,16 +37,16 @@ public class BloomFilter {
             //prendo i valori di m dalla conf del primo mapreduce
             //creo 10 bloom filter dimensionati
             Configuration conf = context.getConfiguration();
-             ff1 = new Filter(Integer.parseInt(conf.get("m1.0")),Integer.parseInt(conf.get("n1.0")),0.01,1);
-             ff2 = new Filter(Integer.parseInt(conf.get("m2.0")),Integer.parseInt(conf.get("n2.0")),0.01,2);
-             ff3 = new Filter(Integer.parseInt(conf.get("m3.0")),Integer.parseInt(conf.get("n3.0")),0.01,3);
-             ff4 = new Filter(Integer.parseInt(conf.get("m4.0")),Integer.parseInt(conf.get("n4.0")),0.01,4);
-             ff5 = new Filter(Integer.parseInt(conf.get("m5.0")),Integer.parseInt(conf.get("n5.0")),0.01,5);
-             ff6 = new Filter(Integer.parseInt(conf.get("m6.0")),Integer.parseInt(conf.get("n6.0")),0.01,6);
-             ff7 = new Filter(Integer.parseInt(conf.get("m7.0")),Integer.parseInt(conf.get("n7.0")),0.01,7);
-             ff8 = new Filter(Integer.parseInt(conf.get("m8.0")),Integer.parseInt(conf.get("n8.0")),0.01,8);
-             ff9 = new Filter(Integer.parseInt(conf.get("m9.0")),Integer.parseInt(conf.get("n9.0")),0.01,9);
-             ff10 = new Filter(Integer.parseInt(conf.get("m10.0")),Integer.parseInt(conf.get("n10.0")),0.01,10);
+             ff1 = new Filter(Integer.parseInt(conf.get("m1.0")),Integer.parseInt(conf.get("n1.0")),0.01,1.0);
+             ff2 = new Filter(Integer.parseInt(conf.get("m2.0")),Integer.parseInt(conf.get("n2.0")),0.01,2.0);
+             ff3 = new Filter(Integer.parseInt(conf.get("m3.0")),Integer.parseInt(conf.get("n3.0")),0.01,3.0);
+             ff4 = new Filter(Integer.parseInt(conf.get("m4.0")),Integer.parseInt(conf.get("n4.0")),0.01,4.0);
+             ff5 = new Filter(Integer.parseInt(conf.get("m5.0")),Integer.parseInt(conf.get("n5.0")),0.01,5.0);
+             ff6 = new Filter(Integer.parseInt(conf.get("m6.0")),Integer.parseInt(conf.get("n6.0")),0.01,6.0);
+             ff7 = new Filter(Integer.parseInt(conf.get("m7.0")),Integer.parseInt(conf.get("n7.0")),0.01,7.0);
+             ff8 = new Filter(Integer.parseInt(conf.get("m8.0")),Integer.parseInt(conf.get("n8.0")),0.01,8.0);
+             ff9 = new Filter(Integer.parseInt(conf.get("m9.0")),Integer.parseInt(conf.get("n9.0")),0.01,9.0);
+             ff10 = new Filter(Integer.parseInt(conf.get("m10.0")),Integer.parseInt(conf.get("n10.0")),0.01,10.0);
         }
 
         @Override
@@ -55,25 +55,25 @@ public class BloomFilter {
             String[] record = record1.split("\\s+");
             String movieId = record[0];
             String rating  = Double.toString(Math.round(Double.parseDouble(record[1])));
-            if(rating=="1"){
+            if(rating.compareTo("1.0")==0){
                 this.ff1.add(movieId);
-            }else if (rating=="2"){
+            }else if (rating.compareTo("2.0")==0){
                 this.ff2.add(movieId);
-            }else if (rating=="3"){
+            }else if (rating.compareTo("3.0")==0){
                 this.ff3.add(movieId);
-            }else if (rating=="4"){
+            }else if (rating.compareTo("4.0")==0){
                 this.ff4.add(movieId);
-            }else if (rating=="5"){
+            }else if (rating.compareTo("5.0")==0){
                 this.ff5.add(movieId);
-            }else if (rating=="6"){
+            }else if (rating.compareTo("6.0")==0){
                 this.ff6.add(movieId);
-            }else if (rating=="7"){
+            }else if (rating.compareTo("7.0")==0){
                 this.ff7.add(movieId);
-            }else if (rating=="8"){
+            }else if (rating.compareTo("8.0")==0){
                 this.ff8.add(movieId);
-            }else if (rating=="9"){
+            }else if (rating.compareTo("9.0")==0){
                 this.ff9.add(movieId);
-            }else{
+            }else if (rating.compareTo("10.0")==0){
                 this.ff10.add(movieId);
             }
 
@@ -86,16 +86,16 @@ public class BloomFilter {
 
             // Write the filter to HDFS once all maps are finished
 
-            context.write(new Text("1"),ff1);
-            context.write(new Text("2"),ff2);
-            context.write(new Text("3"),ff3);
-            context.write(new Text("4"),ff4);
-            context.write(new Text("5"),ff5);
-            context.write(new Text("6"),ff6);
-            context.write(new Text("7"),ff7);
-            context.write(new Text("8"),ff8);
-            context.write(new Text("9"),ff9);
-            context.write(new Text("10"),ff10);
+            context.write(new Text("1.0"),ff1);
+            context.write(new Text("2.0"),ff2);
+            context.write(new Text("3.0"),ff3);
+            context.write(new Text("4.0"),ff4);
+            context.write(new Text("5.0"),ff5);
+            context.write(new Text("6.0"),ff6);
+            context.write(new Text("7.0"),ff7);
+            context.write(new Text("8.0"),ff8);
+            context.write(new Text("9.0"),ff9);
+            context.write(new Text("10.0"), ff10);
 
 
         }
@@ -122,16 +122,16 @@ public class BloomFilter {
             //prendo i valori di m dalla conf del primo mapreduce
             //creo 10 bloom filter dimensionati
             Configuration conf = context.getConfiguration();
-            f1 = new Filter(Integer.parseInt(conf.get("m1.0")),Integer.parseInt(conf.get("n1.0")),0.01,1);
-            f2 = new Filter(Integer.parseInt(conf.get("m2.0")),Integer.parseInt(conf.get("n2.0")),0.01,2);
-            f3 = new Filter(Integer.parseInt(conf.get("m3.0")),Integer.parseInt(conf.get("n3.0")),0.01,3);
-            f4 = new Filter(Integer.parseInt(conf.get("m4.0")),Integer.parseInt(conf.get("n4.0")),0.01,4);
-            f5 = new Filter(Integer.parseInt(conf.get("m5.0")),Integer.parseInt(conf.get("n5.0")),0.01,5);
-            f6 = new Filter(Integer.parseInt(conf.get("m6.0")),Integer.parseInt(conf.get("n6.0")),0.01,6);
-            f7 = new Filter(Integer.parseInt(conf.get("m7.0")),Integer.parseInt(conf.get("n7.0")),0.01,7);
-            f8 = new Filter(Integer.parseInt(conf.get("m8.0")),Integer.parseInt(conf.get("n8.0")),0.01,8);
-            f9 = new Filter(Integer.parseInt(conf.get("m9.0")),Integer.parseInt(conf.get("n9.0")),0.01,9);
-            f10 = new Filter(Integer.parseInt(conf.get("m10.0")),Integer.parseInt(conf.get("n10.0")),0.01,10);
+            f1 = new Filter(Integer.parseInt(conf.get("m1.0")),Integer.parseInt(conf.get("n1.0")),0.01,1.0);
+            f2 = new Filter(Integer.parseInt(conf.get("m2.0")),Integer.parseInt(conf.get("n2.0")),0.01,2.0);
+            f3 = new Filter(Integer.parseInt(conf.get("m3.0")),Integer.parseInt(conf.get("n3.0")),0.01,3.0);
+            f4 = new Filter(Integer.parseInt(conf.get("m4.0")),Integer.parseInt(conf.get("n4.0")),0.01,4.0);
+            f5 = new Filter(Integer.parseInt(conf.get("m5.0")),Integer.parseInt(conf.get("n5.0")),0.01,5.0);
+            f6 = new Filter(Integer.parseInt(conf.get("m6.0")),Integer.parseInt(conf.get("n6.0")),0.01,6.0);
+            f7 = new Filter(Integer.parseInt(conf.get("m7.0")),Integer.parseInt(conf.get("n7.0")),0.01,7.0);
+            f8 = new Filter(Integer.parseInt(conf.get("m8.0")),Integer.parseInt(conf.get("n8.0")),0.01,8.0);
+            f9 = new Filter(Integer.parseInt(conf.get("m9.0")),Integer.parseInt(conf.get("n9.0")),0.01,9.0);
+            f10 = new Filter(Integer.parseInt(conf.get("m10.0")),Integer.parseInt(conf.get("n10.0")),0.01,10.0);
         }
 
 
@@ -140,57 +140,57 @@ public class BloomFilter {
             FileSystem fs = FileSystem.get(context.getConfiguration());
 
 
-            if(key.toString()=="1"){
+            if(key.toString().compareTo("1.0")==0){
                 for (Filter value : values) {
                     f1.or(value);
                 }
                 context.write(key, new Text(f1.toString()));
-            }else if(key.toString()=="2"){
+            }else if(key.toString().compareTo("2.0")==0){
                 for (Filter value : values) {
                     f2.or(value);
                 }
                 context.write(key, new Text(f2.toString()));
-            }else if(key.toString()=="3"){
+            }else if(key.toString().compareTo("3.0")==0){
 
                 for (Filter value : values) {
                     f3.or(value);
                 }
                 context.write(key, new Text(f3.toString()));
-            }else if(key.toString()=="4"){
+            }else if(key.toString().compareTo("4.0")==0){
 
                 for (Filter value : values) {
                     f4.or(value);
                 }
                 context.write(key, new Text(f4.toString()));
-            }else if(key.toString()=="5"){
+            }else if(key.toString().compareTo("5.0")==0){
 
                 for (Filter value : values) {
                     f5.or(value);
                 }
                 context.write(key, new Text(f5.toString()));
-            }else if(key.toString()=="6"){
+            }else if(key.toString().compareTo("6.0")==0){
 
                 for (Filter value : values) {
                     f6.or(value);
                 }
                 context.write(key, new Text(f6.toString()));
-            }else if(key.toString()=="7"){
+            }else if(key.toString().compareTo("7.0")==0){
 
                 for (Filter value : values) {
                     f7.or(value);
                 }
                 context.write(key, new Text(f7.toString()));
-            }else if(key.toString()=="8"){
+            }else if(key.toString().compareTo("8.0")==0){
                 for (Filter value : values) {
                     f8.or(value);
                 }
                 context.write(key, new Text(f8.toString()));
-            }else if(key.toString()=="9"){
+            }else if(key.toString().compareTo("9.0")==0){
                 for (Filter value : values) {
                     f9.or(value);
                 }
                 context.write(key, new Text(f9.toString()));
-            }else if(key.toString()=="10"){
+            }else if(key.toString().compareTo("10.0")==0){
 
                 for (Filter value : values) {
                     f10.or(value);

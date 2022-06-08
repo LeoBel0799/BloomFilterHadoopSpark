@@ -67,6 +67,18 @@ public class Filter implements Writable {
         }
     }
 
+    public boolean isMember(String idFilm) {
+        int hashValue;
+        MurmurHash hasher = new MurmurHash();
+        for (int i = 0; i < k; i++) {
+            hashValue = hasher.hash(idFilm.getBytes(), m, 50 * i);
+            if (bitArray[hashValue] != true) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 
     /* Or for merging filters*/
     public void or(BitSet filter, int dimension) {

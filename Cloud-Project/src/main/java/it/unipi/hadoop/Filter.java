@@ -20,15 +20,11 @@ import java.util.stream.IntStream;
 
 public class Filter implements Writable {
 
-    public BitSet bitArray;
+    public BitSet bitArray ;
     public int m;   // number of bit in the array
     public int k;   // number of hash function
     public int n;   // number of films to put in the filter of a certain rating
-    public static final int   MAX_VALUE = 0x7fffffff;
-    private transient int wordsUse = 0;
-    private static final int ADDRESS_BITS_PER_WORD = 6;
-    private static final int BITS_PER_WORD = 1 << ADDRESS_BITS_PER_WORD;
-    private static final int BIT_INDEX_MASK = BITS_PER_WORD - 1;
+
 
     private static final byte[] bitvalues = new byte[] {
             (byte)0x01,
@@ -48,8 +44,9 @@ public class Filter implements Writable {
         k = (int) ((m / n) * Math.log(2)) + 1;
         this.bitArray = new BitSet(m);
     }
-    public Filter(){
 
+    public Filter(){
+        super();
     }
 
     @Override
@@ -71,66 +68,18 @@ public class Filter implements Writable {
         }
     }
 
-    private ArrayList<String> pickFile(String stringPath) throws IOException {
-        Configuration conf = new Configuration();
-        String strLine;
-        ArrayList<String> list = new ArrayList<>();
-        try {
-            Path inputFile = new Path(stringPath);
-            FileSystem fs = FileSystem.get(inputFile.toUri(), conf);
-            String line = null;
-            Scanner fstream = new Scanner(String.valueOf(fs));
-
-            if (!fs.exists(inputFile)) {
-                System.out.println("Input file not found!");
-                throw new IOException("Input file not found!");
-            } else {
-                while ((fstream.hasNext())) {
-                    list.add(fstream.next());
-                }
-
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    /*private int pickDimension(ArrayList<String> list, int rating) {
-        int count = 0;
-        String[] tokens = new String[2];
-        for (int j = 0; j < list.size(); j++) {
-            tokens[0] = list.get(j).split("\\s+")[0];
-            tokens[1] = list.get(j).split("\t")[1];
-            if (Integer.parseInt(tokens[0]) == rating) {
-                count = Integer.parseInt(tokens[1]);
-                return count;
-            }
-        }
-        return count;
-    }*/
-
-
-    /* Function to check is an object is present */
-    public boolean isMember(String idFilm) {
-        int hashValue;
-        MurmurHash hasher = new MurmurHash();
-        for (int i = 0; i < k; i++) {
-            hashValue = hasher.hash(idFilm.getBytes(), m, 50 * i);
-            if (bitArray.get(hashValue) != true) {
-                return false;
-            }
-        }
-        return true;
-    }
-
 
     /* Or for merging filters*/
-    public void or(Filter filter) {
-        if(filter.m != this.m) {
-            throw new IllegalArgumentException("filters cannot be or-ed");
+    public void or(BitSet filter, int dimension) {
+        if (this.m != dimension) {
+            throw new IllegalArgumentException("These 2 filters cannot be merged!" + dimension + " " + this.m);
+        }else {
+            //this.bitArray.or(filter);
+            for (int i=0; i<filter.size(); i++){
+                if (filter.get(i)==true || this.bitArray.get(i) == true)
+                    this.bitArray.set(i, true);
+            }
         }
-        this.bitArray.or((filter).bitArray);
     }
 
 

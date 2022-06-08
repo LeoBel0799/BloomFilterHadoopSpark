@@ -81,6 +81,8 @@ public class BloomFilter {
 
         @Override
         protected void cleanup(Context context) throws IOException, InterruptedException {
+
+
             // Write the filter to HDFS once all maps are finished
             context.write(new Text("1.0"),ff1);
             context.write(new Text("2.0"),ff2);

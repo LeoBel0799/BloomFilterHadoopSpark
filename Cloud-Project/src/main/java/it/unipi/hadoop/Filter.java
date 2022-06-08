@@ -1,18 +1,15 @@
 
 package it.unipi.hadoop;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Writable;
+import org.apache.hadoop.util.bloom.HashFunction;
+import org.apache.hadoop.util.hash.Hash;
 import org.apache.hadoop.util.hash.MurmurHash;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Scanner;
 import java.util.stream.IntStream;
 
 
@@ -24,6 +21,8 @@ public class Filter implements Writable {
     public int m;   // number of bit in the array
     public int k;   // number of hash function
     public int n;   // number of films to put in the filter of a certain rating
+    public int hashType;
+    public HashFunction hash;
 
 
     private static final byte[] bitvalues = new byte[] {
@@ -84,6 +83,11 @@ public class Filter implements Writable {
 
 
     public void write(DataOutput out) throws IOException {
+            out.writeInt(-1);
+            out.writeInt(this.k);
+            out.writeByte(Hash.MURMUR_HASH);
+            out.writeInt(this.m);
+
         byte[] bytes = new byte[getNBytes()];
         for(int i = 0, byteIndex = 0, bitIndex = 0; i < m; i++, bitIndex++) {
             if (bitIndex == 8) {
@@ -102,6 +106,19 @@ public class Filter implements Writable {
 
     @Override
     public void readFields(DataInput in) throws IOException {
+        MurmurHash hasher = new MurmurHash();
+        int ver = in.readInt();
+        if (ver > 0) { // old unversioned format
+            this.k = ver;
+            hashType = Hash.MURMUR_HASH;
+        } else if (ver == -1) {
+            this.k = in.readInt();
+            this.hashType = in.readByte();
+        } else {
+            throw new IOException("Unsupported version: " + ver);
+        }
+        this.m = in.readInt();
+        this.hash = new HashFunction(this.m, this.k, this.hashType);
         BitSet bits = new BitSet(this.m);
         byte[] bytes = new byte[getNBytes()];
         in.readFully(bytes);
@@ -116,10 +133,9 @@ public class Filter implements Writable {
         }
     }
 
-    /* @return number of bytes needed to hold bit vector */
-     private int getNBytes() {
+    private int getNBytes () {
         return (m + 7) / 8;
-     }
+    }
 }
 
 

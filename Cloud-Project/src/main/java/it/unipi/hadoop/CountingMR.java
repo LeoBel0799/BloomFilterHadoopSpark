@@ -156,25 +156,11 @@ public class CountingMR {
         j2.getConfiguration().setInt("m8.0",takeValues[7] );
         j2.getConfiguration().setInt("m9.0",takeValues[8] );
         j2.getConfiguration().setInt("m10.0",takeValues[9] );
-        j2.getConfiguration().setInt("n1.0",takeValuesDim[0] );
-        j2.getConfiguration().setInt("n2.0",takeValuesDim[1] );
-        j2.getConfiguration().setInt("n3.0",takeValuesDim[2] );
-        j2.getConfiguration().setInt("n4.0",takeValuesDim[3] );
-        j2.getConfiguration().setInt("n5.0",takeValuesDim[4] );
-        j2.getConfiguration().setInt("n6.0",takeValuesDim[5] );
-        j2.getConfiguration().setInt("n7.0",takeValuesDim[6] );
-        j2.getConfiguration().setInt("n8.0",takeValuesDim[7] );
-        j2.getConfiguration().setInt("n9.0",takeValuesDim[8] );
-        j2.getConfiguration().setInt("n10.0",takeValuesDim[9] );
-        /*
-        for (int k=0; k< takeValues.length; k++){
-            String name = "m" + (k+1);
-            j2.getConfiguration().setInt(name, takeValues[k]);
-            //j2.getConfiguration().setInt(name, takeValues[k+2*k]);
-        }*/
+
+
         //mapper
         j2.setMapOutputKeyClass(Text.class);
-        j2.setMapOutputValueClass(Filter.class);
+        j2.setMapOutputValueClass(BloomFilter.IntArrayWritable.class);
        //reducer
         j2.setOutputKeyClass(Text.class);
         j2.setOutputValueClass(Text.class);

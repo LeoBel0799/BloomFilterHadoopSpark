@@ -41,20 +41,20 @@ public class CountingMR {
     public static class NewReducer extends Reducer<Text, Text, Text, Text> {
 
         public void reduce(final Text key, final Iterable<Text> values, final Context context) throws IOException, InterruptedException {
-            int n = 0,m,k;
+            int n = 0,m;
             double pvalue = 0.01;
-            String[] tokens = new String[2];
+
             for (final Text val : values) {
                 n++;
             }
             m = (int) (-(n * Math.log(pvalue)) / (Math.pow(Math.log(2), 2))) + 1;
-            k = (int) ((m / n) * Math.log(2)) + 1;
+
 
 
             String mstr = Integer.toString(m);
-            String kstr = Integer.toString(k);
 
-            String testo = n + "\t" +  mstr + "\t" + kstr;
+
+            String testo =  mstr ;
             Text result = new Text(testo);
             context.write(key, result);
         }
@@ -126,12 +126,11 @@ public class CountingMR {
         //Creo array con tutti i valori di m dei 10 filtri
         //l'indice +1 equivale al rating
         int[] takeValues = new int[10];
-        int[] takeValuesDim = new int[10];
+
         for (int i=0; i<listValues.size(); i++){
             String row = listValues.get(i);
             int index = (int)Double.parseDouble(String.valueOf(row.split("\t")[0]))-1;
-            takeValues[index] = Integer.parseInt(row.split("\t")[2]);
-            takeValuesDim[index] = Integer.parseInt(row.split("\t")[1]);
+            takeValues[index] = Integer.parseInt(row.split("\t")[1]);
         }
 
 
@@ -142,7 +141,7 @@ public class CountingMR {
         j2.setMapperClass(BloomFilter.BloomFilterMapper.class);
         j2.setReducerClass(BloomFilter.BloomFilterReducer.class);
         j2.setInputFormatClass(NLineInputFormat.class);
-        j2.getConfiguration().setStrings("mapreduce.reduce.shuffle.memory.limit.percent", "0.15");
+        //j2.getConfiguration().setStrings("mapreduce.reduce.shuffle.memory.limit.percent", "0.15");
         NLineInputFormat.addInputPath(j2, new Path(otherArgs[0]));
         //N.tot =1,247,686      (8)  311922(4)
         j2.getConfiguration().setInt("mapreduce.input.lineinputformat.linespermap", 311922);

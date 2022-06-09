@@ -154,7 +154,6 @@ public class BloomFilter {
         @Override
         protected void cleanup(Context context) throws IOException, InterruptedException {
 
-
             context.write(new Text("1.0"),f1);
             context.write(new Text("2.0"),f2);
             context.write(new Text("3.0"),f3);

@@ -5,16 +5,47 @@ import org.apache.hadoop.util.hash.MurmurHash;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class TestBloomFilter {
-    public void test (Filter[] filters) throws FileNotFoundException {
+    //lista di filtri
+    List<int []> bloomFilters = new ArrayList<int []>();
 
 
+
+    //to implement
+    public void createBloomFromFile(Path path) throws FileNotFoundException {
+        //file generato dal secondo mapReduce
+        Scanner scannerValue = new Scanner(new File("C:\\Users\\Domenico\\Desktop\\input.txt"));
+        for(int nFiltro=0;nFiltro<10;nFiltro++){
+            
+        }
+
+
+    }
+
+    public int isMemberBloom(int filter[], String id_film ){
+        int hashValue;
+        MurmurHash hasher = new MurmurHash();
+        for (int i = 0; i < 7; i++) {
+            hashValue = hasher.hash(id_film.getBytes(), filter.length, 50 * i);
+            if (filter[hashValue] != 1) {
+                return 0;
+            }
+        }
+        return 1;
+    }
+
+
+
+    public void test () throws FileNotFoundException {
         //FP
         MurmurHash hasher = new MurmurHash();
-        //apro file e itero le linee
+        //file input
         Scanner scannerFilm = new Scanner(new File("C:\\Users\\Domenico\\Desktop\\input.txt"));
+        //setto a 0 i vari Fp
         int FP[] = new int[10];
         for (int j=0;j<10;j++){
             FP[j]=0;
@@ -31,7 +62,7 @@ public class TestBloomFilter {
             //testo su tutti i filtri tranne quello a cui appartiene davvero
             for(int i=0;i<9;i++){
                 if((ratingInt-1)!=i){
-                    if(filters[i].isMember(tokens[0])==true  ){
+                    if(isMemberBloom(this.bloomFilters.get(i),tokens[0])==1  ){
                         FP[ratingInt-1]++;
                     }
                 }
@@ -42,6 +73,7 @@ public class TestBloomFilter {
 
 
         //TN
+        //file generato dal primo mapreduce
         Scanner scannerResultReducer = new Scanner(new File("C:\\Users\\Domenico\\Desktop\\demofile.txt"));
         int realValue[] = new int[10];
         while (scannerResultReducer.hasNextLine()) {

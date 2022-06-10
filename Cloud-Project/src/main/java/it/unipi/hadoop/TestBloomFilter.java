@@ -3,15 +3,13 @@ package it.unipi.hadoop;
 import org.apache.hadoop.util.hash.MurmurHash;
 
 import java.io.*;
+import java.text.DecimalFormat;
 import java.util.Scanner;
 import java.util.ArrayList;
-import java.util.List;
 
 public class TestBloomFilter {
     //lista di filtri
     ArrayList<Integer>[] bloomFilters = new ArrayList[10];
-
-
 
 
     public void createBloomFromFile() throws IOException {
@@ -26,48 +24,50 @@ public class TestBloomFilter {
 
 
         try {
-            objReader = new BufferedReader(new FileReader("C:\\Users\\Domenico\\Desktop\\Cloud-Project-2nd-Impl\\Cloud-Project\\src\\main\\java\\it\\unipi\\hadoop\\part-r-00000"));
+            objReader = new BufferedReader(new FileReader("hdfs:///user/Pepp/Bloom/part-r-00000"));
             String strCurrentLine = objReader.readLine();
-            int i=0;
+            //int i=0;
             while (strCurrentLine != null) {
                 //String line = objReader.readLine();
                 String myArray1[] = strCurrentLine.split("\t");
                 String myArray2[] = myArray1[1].split(" ");
                 for (int j = 0; j < myArray2.length; j++) {
-                    //int index = (int) Double.parseDouble(myArray1[0]);
-                    //this.bloomFilters[index-1].add(Integer.parseInt(myArray2[j]));
-                    this.bloomFilters[i].add(Integer.parseInt(myArray2[j]));
+                    int index = (int) Double.parseDouble(myArray1[0]);
+                    this.bloomFilters[index - 1].add(Integer.parseInt(myArray2[j]));
+                    //this.bloomFilters[i].add(Integer.parseInt(myArray2[j]));
                 }
-                i++;
+                //i++;
                 strCurrentLine = objReader.readLine();
             }
-        }catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         } finally {
 
-        try {
-            if (objReader != null)
-                objReader.close();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }}
+            try {
+                if (objReader != null)
+                    objReader.close();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
 
 
-        for(int l=0;l<10;l++){
-            System.out.println("bloom "+l+" :"+"\n");
-            for(int j=0;j<bloomFilters[l].size();j++){
+        for (int l = 0; l < 10; l++) {
+            System.out.println("bloom " + l + " :" + "\n");
+            for (int j = 0; j < bloomFilters[l].size(); j++) {
                 //System.out.println(bloomFilters[l].get(j)+" ");
 
             }
         }
     }
 
-    public int isMemberBloom(int filter[], String id_film ){
+    public int isMemberBloom(ArrayList<Integer> filter, String id_film) {
         int hashValue;
         MurmurHash hasher = new MurmurHash();
         for (int i = 0; i < 7; i++) {
-            hashValue = hasher.hash(id_film.getBytes(), filter.length, 50 * i);
-            if (filter[hashValue] != 1) {
+            hashValue = (hasher.hash(id_film.getBytes(), 9, 50 * i));
+
+            if (filter.get(Math.abs(hashValue)%filter.size()) != 1) {
                 return 0;
             }
         }
@@ -76,72 +76,70 @@ public class TestBloomFilter {
 
 
 
-    public void test () throws FileNotFoundException {
-        /*
-        //FP
-        MurmurHash hasher = new MurmurHash();
-        //file input
-        Scanner scannerFilm = new Scanner(new File("C:\\Users\\Domenico\\Desktop\\input.txt"));
-        //setto a 0 i vari Fp
-        int FP[] = new int[10];
-        for (int j=0;j<10;j++){
-            FP[j]=0;
-        }
-        while (scannerFilm.hasNextLine()) {
-            // process the line
-            String line = scannerFilm.nextLine();
-            String[] tokens = new String[2];
-            tokens[0] = line.split("\t")[0]; //id_film
-            tokens[1] = line.split("\t")[1]; //rating
-            tokens[1] = Double.toString(Math.round(Double.parseDouble(tokens[1])));
-            //converto per ricavare il filtro
-            int ratingInt = Integer.parseInt(tokens[1]);
-            //testo su tutti i filtri tranne quello a cui appartiene davvero
-            for(int i=0;i<9;i++){
-                if((ratingInt-1)!=i){
-                    //if(isMemberBloom(this.bloomFilters[i],tokens[0])==1  ){
-                     //   FP[ratingInt-1]++;
-                   // }
-                }
+    public double[] test() throws FileNotFoundException {
 
-            }
-
-        }
-
-
-         */
-
-        //TN
         //file generato dal primo mapreduce
-        Scanner scannerResultReducer = new Scanner(new File("C:\\Users\\Domenico\\Desktop\\Cloud-Project-2nd-Impl\\Cloud-Project\\src\\main\\java\\it\\unipi\\hadoop\\part-r-00001"));
+        Scanner scannerResultReducer = new Scanner(new File("hdfs:///user/Pepp/Counting/part-r-00000"));
         int realValue[] = new int[10];
-        int m=0;
         while (scannerResultReducer.hasNextLine()) {
             String line = scannerResultReducer.nextLine();
             String myArray1[] = line.split("\t");
-            //int keyInt = Integer.parseInt(tokens[0]);
-            realValue[m]=Integer.parseInt(myArray1[1]);
-            m++;
+            int keyInt =(int) Math.round(Double.parseDouble(myArray1[0]));
+            realValue[keyInt-1] = Integer.parseInt(myArray1[1]);
+        }
+        for(int y=0;y<realValue.length;y++){
+            System.out.println("valore :" + realValue[y]);
         }
 
-        //to implement
-        int[] TN = new int[10];
-        int tot = 1247687;
-        for (int i=0;i<10;i++){
-            TN[i]=tot-realValue[i];
+        //FP
+        MurmurHash hasher = new MurmurHash();
+        //file input
+        Scanner scannerFilm = new Scanner(new File("hdfs:///user/Pepp/data.tsv"));
+        //setto a 0 i vari Fp
+        int FP[] = new int[10];
+        for (int j = 0; j < 10; j++) {
+            FP[j] = 0;
+        }
+        String line0 = scannerFilm.nextLine();
+        while (scannerFilm.hasNextLine()) {
+            // process the line
+            String line = scannerFilm.nextLine();
+            String myArray[] = line.split("\t");
+            //converto per ricavare il filtro
+            int ratingInt =(int) Math.round(Double.parseDouble(myArray[1]));
+
+            //testo su tutti i filtri tranne quello a cui appartiene davvero
+            for (int i = 0; i < 9; i++) {
+                if ((ratingInt - 1) != i) {
+                    if (isMemberBloom(this.bloomFilters[i], myArray[0]) == 1) {
+                        FP[ratingInt - 1]++;
+                    }
+                }
+
+            }
         }
 
-        //FPR=FP/(FP+TN)
-        double fpr[] = new double[10];
-        for(int i=0;i<10;i++){
-            //fpr[i] = FP[i]/(FP[i]+TN[i]);
-            //System.out.println(fpr[i]);
-            System.out.println(TN[i]);
+        System.out.println("\n\n");
+
+        for(int y=0;y<FP.length;y++){
+            System.out.println("FP :" + y +" = "+ FP[y] );
         }
 
-
+        DecimalFormat df = new DecimalFormat("0.000");
+        System.out.println("\n\n");
+        double ris[] = new double[10];
+        for(int y=0;y<FP.length;y++){
+            ris[y]=((FP[y]*1000)/(realValue[y]));
+            df.format((FP[y]/realValue[y]));
+            System.out.println("valore :" + y +" = "+ df.format(((FP[y]*100)/realValue[y])) );
+        }
+        return ris;
 
 
 
     }
 }
+
+
+
+

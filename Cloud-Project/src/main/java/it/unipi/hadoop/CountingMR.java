@@ -100,6 +100,7 @@ public class CountingMR {
 
     public static void main(final String[] args) throws Exception {
 
+
         Configuration conf1=new Configuration();
         String[] otherArgs = new GenericOptionsParser(conf1, args).getRemainingArgs();
         Job j1=Job.getInstance(conf1);
@@ -163,10 +164,17 @@ public class CountingMR {
        //reducer
         j2.setOutputKeyClass(Text.class);
         j2.setOutputValueClass(Text.class);
+
         Path outputPath1=new Path("/user/Pepp/Bloom");
         FileOutputFormat.setOutputPath(j2, outputPath1);
-        System.exit(j2.waitForCompletion(true)?0:1);
+        //System.exit(j2.waitForCompletion(true)?0:1);
+        j2.waitForCompletion(true);
 
+        TestBloomFilter test = new TestBloomFilter();
+        test.createBloomFromFile();
+        for(int i=0;i<10;i++){
+            System.out.println("valore :" + i +" = "+ test.test()[i]);
+        }
     }
 }
 

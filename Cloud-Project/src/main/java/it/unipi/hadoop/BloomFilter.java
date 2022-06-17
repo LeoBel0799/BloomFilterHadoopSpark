@@ -1,26 +1,15 @@
 package it.unipi.hadoop;
 
-import java.io.DataInput;
-import java.io.DataOutput;
 import java.io.IOException;
-import java.util.ArrayList;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.Text;
-
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.*;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.util.hash.MurmurHash;
-import org.apache.hadoop.yarn.webapp.hamlet2.Hamlet;
 
 
 public class BloomFilter {
-
-
     public static class BloomFilterMapper extends Mapper<Object, Text, Text, IntArrayWritable> {
         private IntWritable[] ff1 ;
         private IntWritable[] ff2 ;
@@ -45,9 +34,15 @@ public class BloomFilter {
         IntArrayWritable f10;
 
 
-        public void setup(Context context) throws IOException, InterruptedException {
-            //prendo i valori di m dalla conf del primo mapreduce
-            //creo 10 bloom filter dimensionati
+        /**
+         * m's values are taken from first MR job's configuration plus 10 bloom filters
+         * already dimensioned were created.
+         * Filters are created only once thanks to set-up
+         * @param context
+         * @throws IOException
+         * @throws InterruptedException
+         */
+        public void setup(Context context) {
             Configuration conf = context.getConfiguration();
             ff1  = new IntWritable[Integer.parseInt(conf.get("m1.0"))];
             for (int i =0; i<Integer.parseInt(conf.get("m1.0"));i++ ){
@@ -110,47 +105,61 @@ public class BloomFilter {
             f10 = new IntArrayWritable();
         }
 
+        /**
+         * Map method in which rating is passed as a key and it's rounded and a movieid is passed
+         * Then filters are created adding elements taking the filters already created in setup
+         * with the right m dimension
+         * @param key: rating
+         * @param value: movieID
+         * @param context
+         */
         @Override
-        public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
+        public void map(Object key, Text value, Context context) {
             String record1 = value.toString();
             String[] record = record1.split("\\s+");
             String movieId = record[0];
             String rating  = Double.toString(Math.round(Double.parseDouble(record[1])));
             Configuration conf = context.getConfiguration();
-
+            double pvalue = Double.parseDouble(conf.get("pvalue"));
             if(rating.compareTo("1.0")==0){
-                add(ff1, movieId,Integer.parseInt(conf.get("m"+rating)));
+                add(ff1, movieId,Integer.parseInt(conf.get("m"+rating)), pvalue);
                 f1.set(ff1);
             }else if (rating.compareTo("2.0")==0){
-                add(ff2, movieId,Integer.parseInt(conf.get("m"+rating)));
+                add(ff2, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
                 f2.set(ff2);
             }else if (rating.compareTo("3.0")==0){
-                add(ff3, movieId,Integer.parseInt(conf.get("m"+rating)));
+                add(ff3, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
                 f3.set(ff3);
             }else if (rating.compareTo("4.0")==0){
-                add(ff4, movieId,Integer.parseInt(conf.get("m"+rating)));
+                add(ff4, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
                 f4.set(ff4);
             }else if (rating.compareTo("5.0")==0){
-                add(ff5, movieId,Integer.parseInt(conf.get("m"+rating)));
+                add(ff5, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
                 f5.set(ff5);
             }else if (rating.compareTo("6.0")==0){
-                add(ff6, movieId,Integer.parseInt(conf.get("m"+rating)));
+                add(ff6, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
                 f6.set(ff6);
             }else if (rating.compareTo("7.0")==0){
-                add(ff7, movieId,Integer.parseInt(conf.get("m"+rating)));
+                add(ff7, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
                 f7.set(ff7);
             }else if (rating.compareTo("8.0")==0){
-                add(ff8, movieId,Integer.parseInt(conf.get("m"+rating)));
+                add(ff8, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
                 f8.set(ff8);
             }else if (rating.compareTo("9.0")==0){
-                add(ff9, movieId,Integer.parseInt(conf.get("m"+rating)));
+                add(ff9, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
                 f9.set(ff9);
             }else if (rating.compareTo("10.0")==0){
-                add(ff10, movieId,Integer.parseInt(conf.get("m"+rating)));
+                add(ff10, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
                 f10.set(ff10);
             }
         }
 
+        /**
+         * Clean-up to execute write action only once after the job is finished
+         * @param context
+         * @throws IOException
+         * @throws InterruptedException
+         */
         @Override
         protected void cleanup(Context context) throws IOException, InterruptedException {
 
@@ -167,11 +176,19 @@ public class BloomFilter {
         }
 
     }
-    public static void add (IntWritable[] newFilter, String movieId, int dimension){
+
+    /**
+     * Add MovieID inside IntWritable filters
+     * @param newFilter: filter to populate
+     * @param movieId: film's ids
+     * @param dimension: m parameter to pass in the hash function
+     * @param pvalue: pvalue
+     */
+    public static void add (IntWritable[] newFilter, String movieId, int dimension, double pvalue){
 
         MurmurHash hasher = new MurmurHash();
         byte[] bytearr = movieId.getBytes();
-        int k=7;
+        int k= (int) -(Math.log(pvalue)/Math.log(2));
 
         for (int i = 0; i < k; i++) {
             int position = hasher.hash(bytearr, 9,  i*50) % dimension;
@@ -193,20 +210,26 @@ public class BloomFilter {
 
         public String toString() {
             StringBuilder sb = new StringBuilder("");
-
             for (String s : super.toStrings()) {
                 sb.append(s).append(" ");
             }
-
-            // sb.append("]");
             return sb.toString();
         }
     }
 
     public static class BloomFilterReducer extends Reducer<Text, IntArrayWritable, Text, Text> {
 
+        /**
+         * In reduce method an empty IntWritable array is created and it's setted to 0. After the final array
+         * is populated iterating over values passed from Mapper and a logical or is exectued between filters to
+         * obtain the final one
+         * @param key
+         * @param values
+         * @param context
+         * @throws IOException
+         * @throws InterruptedException
+         */
         public void reduce(Text key, Iterable<IntArrayWritable> values, Context context) throws IOException, InterruptedException {
-            // Merge all filters by logical OR
             Configuration conf = context.getConfiguration();
             IntArrayWritable finalArray = new IntArrayWritable();
 
@@ -222,16 +245,17 @@ public class BloomFilter {
        }
     }
 
+    /**
+     * Logical or method that takes two filters and gives the final one with merged values
+     * @param finalArray
+     * @param array
+     */
     public static void or( IntWritable[] finalArray, IntArrayWritable array){
-
         for( int i =0 ; i<finalArray.length;i++){
-           // int value = Integer.parseInt(array.toString().split(" ")[i]);
             int value = Integer.parseInt(array.get()[i].toString());
             if(value == 1)
                 finalArray[i].set(1);
         }
 
     }
-
-
 }

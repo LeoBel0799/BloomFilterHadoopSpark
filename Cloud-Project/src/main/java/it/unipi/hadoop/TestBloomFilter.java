@@ -1,3 +1,4 @@
+/*
 package it.unipi.hadoop;
 
 import org.apache.hadoop.util.hash.MurmurHash;
@@ -6,7 +7,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
 import java.util.Scanner;
-
 public class TestBloomFilter {
     public void test (Filter[] filters) throws FileNotFoundException {
 
@@ -71,3 +71,4 @@ public class TestBloomFilter {
 
     }
 }
+*/

@@ -55,7 +55,7 @@ public class TestBloomFilter {
         for (int l = 0; l < 10; l++) {
             System.out.println("bloom " + l + " :" + "\n");
             for (int j = 0; j < bloomFilters[l].size(); j++) {
-                //System.out.println(bloomFilters[l].get(j)+" ");
+                System.out.println(bloomFilters[l].get(j)+" ");
 
             }
         }
@@ -76,8 +76,8 @@ public class TestBloomFilter {
 
 
 
-    public double[] test() throws FileNotFoundException {
-
+    public double[] test() throws IOException {
+        this.createBloomFromFile();
         //file generato dal primo mapreduce
         Scanner scannerResultReducer = new Scanner(new File("hdfs:///user/Pepp/Counting/part-r-00000"));
         int realValue[] = new int[10];

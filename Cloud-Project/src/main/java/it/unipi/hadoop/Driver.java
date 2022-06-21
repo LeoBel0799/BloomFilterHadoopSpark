@@ -103,6 +103,10 @@ public class Driver {
         FileOutputFormat.setOutputPath(j2, outputPath1);
         System.exit(j2.waitForCompletion(true)?0:1);
 
+        //test
+        TestBloomFilter test = new TestBloomFilter();
+        test.test();
+
     }
 
 

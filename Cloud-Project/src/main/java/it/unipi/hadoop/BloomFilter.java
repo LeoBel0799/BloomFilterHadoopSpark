@@ -1,9 +1,10 @@
 package it.unipi.hadoop;
 
 import java.io.IOException;
+
+import org.apache.hadoop.io.*;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.io.*;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.util.hash.MurmurHash;
@@ -193,8 +194,8 @@ public class BloomFilter {
         for (int i = 0; i < k; i++) {
             int position = hasher.hash(bytearr, 9,  i*50) % dimension;
             if (position < 0) {
-               position = Math.abs(position) ;
-               newFilter[position].set(1);
+                position = Math.abs(position) ;
+                newFilter[position].set(1);
 
             } else {
                 newFilter[position].set(1);
@@ -242,7 +243,7 @@ public class BloomFilter {
             }
             finalArray.set(bitArray);
             context.write(key, new Text(finalArray.toString()));
-       }
+        }
     }
 
     /**

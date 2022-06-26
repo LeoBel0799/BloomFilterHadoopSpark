@@ -1,11 +1,11 @@
 package it.unipi.hadoop;
 
-import java.io.*;
+import java.io.IOException;
+
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
-
 
 public class CountingMR {
 
@@ -62,5 +62,10 @@ public class CountingMR {
             context.write(key, result);
         }
     }
+
+
+
+
+
 }
 

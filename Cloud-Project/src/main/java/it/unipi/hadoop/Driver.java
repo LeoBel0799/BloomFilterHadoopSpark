@@ -101,11 +101,11 @@ public class Driver {
         j2.setOutputValueClass(Text.class);
         Path outputPath1=new Path(otherArgs[1]);
         FileOutputFormat.setOutputPath(j2, outputPath1);
-        System.exit(j2.waitForCompletion(true)?0:1);
+        //System.exit(j2.waitForCompletion(true)?0:1);
+        j2.waitForCompletion(true);
 
-        //test
         TestBloomFilter test = new TestBloomFilter();
-        test.test();
+        test.test(otherArgs[2]);
 
     }
 

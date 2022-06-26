@@ -1,5 +1,8 @@
 package it.unipi.hadoop;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.hash.MurmurHash;
 
 import java.io.*;
@@ -20,11 +23,36 @@ public class TestBloomFilter {
         //file generato dal secondo mapReduce
         //File myObj = new File("C:\\Users\\Domenico\\Desktop\\Cloud-Project-2nd-Impl\\Cloud-Project\\src\\main\\java\\it\\unipi\\hadoop\\part-r-00000.txt");
         //Scanner scannerValue = new Scanner(myObj);
-        BufferedReader objReader = null;
 
-
+        //prova
+        Configuration conf = new Configuration();
         try {
-            objReader = new BufferedReader(new FileReader("hdfs:///user/Pepp/Bloom/part-r-00000"));
+            FileSystem fs = FileSystem.get(conf);
+            InputStream stream = fs.open(new Path("hdfs:///cloudproject/BloomFilter/part-r-00000"));
+            BufferedReader objReader = new BufferedReader(new InputStreamReader(stream));
+            String strCurrentLine = objReader.readLine();
+            //int i=0;
+            while (strCurrentLine != null) {
+                //String line = objReader.readLine();
+                String myArray1[] = strCurrentLine.split("\t");
+                String myArray2[] = myArray1[1].split(" ");
+                for (int j = 0; j < myArray2.length; j++) {
+                    int index = (int) Double.parseDouble(myArray1[0]);
+                    this.bloomFilters[index - 1].add(Integer.parseInt(myArray2[j]));
+                    //this.bloomFilters[i].add(Integer.parseInt(myArray2[j]));
+                }
+                //i++;
+                strCurrentLine = objReader.readLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        //prova
+
+        /*
+        BufferedReader objReader = null;
+        try {
+            objReader = new BufferedReader(new FileReader("hdfs:///cloudproject/BloomFilter/part-r-00000"));
             String strCurrentLine = objReader.readLine();
             //int i=0;
             while (strCurrentLine != null) {
@@ -50,21 +78,24 @@ public class TestBloomFilter {
                 ex.printStackTrace();
             }
         }
-
-
-        for (int l = 0; l < 10; l++) {
+         for (int l = 0; l < 10; l++) {
             System.out.println("bloom " + l + " :" + "\n");
             for (int j = 0; j < bloomFilters[l].size(); j++) {
-                System.out.println(bloomFilters[l].get(j)+" ");
+                //System.out.println(bloomFilters[l].get(j)+" ");
 
             }
         }
+        */
+
+
+
     }
 
-    public int isMemberBloom(ArrayList<Integer> filter, String id_film) {
+    public int isMemberBloom(ArrayList<Integer> filter, String id_film , Double pvalue ) {
+        int k= (int) -(Math.log(pvalue)/Math.log(2));
         int hashValue;
         MurmurHash hasher = new MurmurHash();
-        for (int i = 0; i < 7; i++) {
+        for (int i = 0; i <= k; i++) {
             hashValue = (hasher.hash(id_film.getBytes(), 9, 50 * i));
 
             if (filter.get(Math.abs(hashValue)%filter.size()) != 1) {
@@ -76,10 +107,40 @@ public class TestBloomFilter {
 
 
 
-    public double[] test() throws IOException {
+    public double[] test( String pvalueArg) throws IOException {
+        Double pvalue = Double.parseDouble(pvalueArg);
+
         this.createBloomFromFile();
+
         //file generato dal primo mapreduce
-        Scanner scannerResultReducer = new Scanner(new File("hdfs:///user/Pepp/Counting/part-r-00000"));
+        //prova
+        Configuration conf = new Configuration();
+        int realValue[] = new int[10];
+        try {
+            FileSystem fs = FileSystem.get(conf);
+            InputStream stream = fs.open(new Path("hdfs:///cloudproject/counting/part-r-00000"));
+            BufferedReader objReader = new BufferedReader(new InputStreamReader(stream));
+            String strCurrentLine = objReader.readLine();
+            while (strCurrentLine != null) {
+                String myArray1[] = strCurrentLine.split("\t");
+                int keyInt =(int) Math.round(Double.parseDouble(myArray1[0]));
+                realValue[keyInt-1] = Integer.parseInt(myArray1[1]);
+                strCurrentLine = objReader.readLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        /*
+        for(int y=0;y<realValue.length;y++){
+            System.out.println("valore :" + realValue[y]);
+        }
+
+         */
+
+        //prova
+
+        /*
+        Scanner scannerResultReducer = new Scanner(new File("hdfs:///cloudproject/counting/part-r-00000"));
         int realValue[] = new int[10];
         while (scannerResultReducer.hasNextLine()) {
             String line = scannerResultReducer.nextLine();
@@ -91,10 +152,55 @@ public class TestBloomFilter {
             System.out.println("valore :" + realValue[y]);
         }
 
+         */
+
+        //prova
+        MurmurHash hasher = new MurmurHash();
+        //setto a 0 i vari Fp
+        int FP[] = new int[10];
+        for (int j = 0; j < 10; j++) {
+            FP[j] = 0;
+        }
+        try {
+            FileSystem fs = FileSystem.get(conf);
+            InputStream stream = fs.open(new Path("hdfs:///cloudproject/data.tsv"));
+            BufferedReader objReader = new BufferedReader(new InputStreamReader(stream));
+            String strCurrentLine0 = objReader.readLine();
+            String strCurrentLine = objReader.readLine();
+            while (strCurrentLine != null) {
+                // process the line
+                String myArray[] = strCurrentLine.split("\t");
+                //converto per ricavare il filtro
+                int ratingInt =(int) Math.round(Double.parseDouble(myArray[1]));
+
+                //testo su tutti i filtri tranne quello a cui appartiene davvero
+                for (int i = 0; i < 9; i++) {
+                    if ((ratingInt - 1) != i) {
+                        if (isMemberBloom(this.bloomFilters[i], myArray[0],pvalue) == 1) {
+                            FP[ratingInt - 1]++;
+                        }
+                    }
+
+                }
+                strCurrentLine = objReader.readLine();
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+        //prova
+
+
+
+
+
+        /*
         //FP
         MurmurHash hasher = new MurmurHash();
         //file input
-        Scanner scannerFilm = new Scanner(new File("hdfs:///user/Pepp/data.tsv"));
+        Scanner scannerFilm = new Scanner(new File("hdfs:///cloudproject/data.tsv"));
         //setto a 0 i vari Fp
         int FP[] = new int[10];
         for (int j = 0; j < 10; j++) {
@@ -118,20 +224,24 @@ public class TestBloomFilter {
 
             }
         }
-
         System.out.println("\n\n");
 
         for(int y=0;y<FP.length;y++){
             System.out.println("FP :" + y +" = "+ FP[y] );
         }
+        */
 
-        DecimalFormat df = new DecimalFormat("0.000");
+
+
+        //DecimalFormat df = new DecimalFormat("0.000");
         System.out.println("\n\n");
         double ris[] = new double[10];
         for(int y=0;y<FP.length;y++){
-            ris[y]=((FP[y]*1000)/(realValue[y]));
-            df.format((FP[y]/realValue[y]));
-            System.out.println("valore :" + y +" = "+ df.format(((FP[y]*100)/realValue[y])) );
+            ris[y]=(((double)FP[y])/((double)realValue[y]));
+            //df.format((FP[y]/realValue[y]));
+            //System.out.println("valore :" + y +" = "+ df.format(((FP[y]*100)/realValue[y])) );
+            System.out.println("valore :" + y +" = "+ ris[y] );
+
         }
         return ris;
 

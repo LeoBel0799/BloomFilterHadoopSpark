@@ -55,7 +55,7 @@ public class CountingMR {
             for (final Text val : values) {
                 n++;
             }
-            m = (int) (-(n * Math.log(pvalue)) / (Math.pow(Math.log(2), 2))) + 1;
+            m = (int) (-(float)(n * (float)Math.log(pvalue)) / (float)(Math.pow(Math.log(2), 2))) + 1;
             String mstr = Integer.toString(m);
             String testo =  mstr ;
             Text result = new Text(testo);

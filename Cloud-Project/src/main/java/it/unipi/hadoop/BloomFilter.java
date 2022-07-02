@@ -123,34 +123,34 @@ public class BloomFilter {
             Configuration conf = context.getConfiguration();
             double pvalue = Double.parseDouble(conf.get("pvalue"));
             if(rating.compareTo("1.0")==0){
-                add(ff1, movieId,Integer.parseInt(conf.get("m"+rating)), pvalue);
+                addItem(ff1, movieId,Integer.parseInt(conf.get("m"+rating)), pvalue);
                 f1.set(ff1);
             }else if (rating.compareTo("2.0")==0){
-                add(ff2, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
+                addItem(ff2, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
                 f2.set(ff2);
             }else if (rating.compareTo("3.0")==0){
-                add(ff3, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
+                addItem(ff3, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
                 f3.set(ff3);
             }else if (rating.compareTo("4.0")==0){
-                add(ff4, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
+                addItem(ff4, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
                 f4.set(ff4);
             }else if (rating.compareTo("5.0")==0){
-                add(ff5, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
+                addItem(ff5, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
                 f5.set(ff5);
             }else if (rating.compareTo("6.0")==0){
-                add(ff6, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
+                addItem(ff6, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
                 f6.set(ff6);
             }else if (rating.compareTo("7.0")==0){
-                add(ff7, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
+                addItem(ff7, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
                 f7.set(ff7);
             }else if (rating.compareTo("8.0")==0){
-                add(ff8, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
+                addItem(ff8, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
                 f8.set(ff8);
             }else if (rating.compareTo("9.0")==0){
-                add(ff9, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
+                addItem(ff9, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
                 f9.set(ff9);
             }else if (rating.compareTo("10.0")==0){
-                add(ff10, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
+                addItem(ff10, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
                 f10.set(ff10);
             }
         }
@@ -185,21 +185,24 @@ public class BloomFilter {
      * @param dimension: m parameter to pass in the hash function
      * @param pvalue: pvalue
      */
-    public static void add (IntWritable[] newFilter, String movieId, int dimension, double pvalue){
-
+    public static void addItem(IntWritable[] newFilter, String movieId, int dimension, double pvalue){
         MurmurHash hasher = new MurmurHash();
         byte[] bytearr = movieId.getBytes();
         int k= (int) -(Math.log(pvalue)/Math.log(2));
-
+        k++;
         for (int i = 0; i < k; i++) {
-            int position = hasher.hash(bytearr, 9,  i*50) % dimension;
+            int position = (hasher.hash(bytearr, 9,  i*50) % (dimension)+dimension)%dimension;
+            newFilter[position].set(1);
+            /*
             if (position < 0) {
-                position = Math.abs(position) ;
+                position = (position + dimension)%dimension ;
                 newFilter[position].set(1);
 
             } else {
                 newFilter[position].set(1);
             }
+
+             */
         }
     }
 
@@ -239,7 +242,7 @@ public class BloomFilter {
                 bitArray[i]=new IntWritable(0);
             }
             for(IntArrayWritable tmp : values){
-                or(bitArray,tmp);
+                orFilter(bitArray,tmp);
             }
             finalArray.set(bitArray);
             context.write(key, new Text(finalArray.toString()));
@@ -251,7 +254,7 @@ public class BloomFilter {
      * @param finalArray
      * @param array
      */
-    public static void or( IntWritable[] finalArray, IntArrayWritable array){
+    public static void orFilter(IntWritable[] finalArray, IntArrayWritable array){
         for( int i =0 ; i<finalArray.length;i++){
             int value = Integer.parseInt(array.get()[i].toString());
             if(value == 1)

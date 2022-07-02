@@ -23,6 +23,7 @@ public class Driver {
 
         Configuration conf1=new Configuration();
         String[] otherArgs = new GenericOptionsParser(conf1, args).getRemainingArgs();
+
         conf1.set("pvalue",otherArgs[2]);
         conf1.set("input",otherArgs[0]);
 
@@ -36,6 +37,7 @@ public class Driver {
         System.out.println("args[2]: <pvalue>="+otherArgs[2]);
 
         System.out.println("pvalue : "+otherArgs[2]);
+
         Job j1=Job.getInstance(conf1);
         j1.setJarByClass(CountingMR.class);
         j1.setMapperClass(CountingMR.NewMapper.class);
@@ -99,13 +101,13 @@ public class Driver {
         //reducer
         j2.setOutputKeyClass(Text.class);
         j2.setOutputValueClass(Text.class);
+        //j2.setNumReduceTasks(0);
         Path outputPath1=new Path(otherArgs[1]);
         FileOutputFormat.setOutputPath(j2, outputPath1);
         //System.exit(j2.waitForCompletion(true)?0:1);
         j2.waitForCompletion(true);
-
-        TestBloomFilter test = new TestBloomFilter();
-        test.test(otherArgs[2]);
+        TestBloom test = new TestBloom();
+        test.testingFilters(j2.getConfiguration(), otherArgs[0], "hdfs:///cloudproject/BloomFilter/part-r-00000", otherArgs[2], takeValues);
 
     }
 

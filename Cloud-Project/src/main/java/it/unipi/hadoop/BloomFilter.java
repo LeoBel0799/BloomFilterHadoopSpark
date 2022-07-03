@@ -45,6 +45,7 @@ public class BloomFilter {
          */
         public void setup(Context context) {
             Configuration conf = context.getConfiguration();
+
             ff1  = new IntWritable[Integer.parseInt(conf.get("m1.0"))];
             for (int i =0; i<Integer.parseInt(conf.get("m1.0"));i++ ){
                 ff1[i]= new IntWritable(0);
@@ -94,6 +95,7 @@ public class BloomFilter {
                 ff10[i]= new IntWritable(0);
             }
 
+            //f1 acts as a partial bloom of the given rating for current mapper
             f1 = new IntArrayWritable();
             f2 = new IntArrayWritable();
             f3 = new IntArrayWritable();
@@ -116,14 +118,21 @@ public class BloomFilter {
          */
         @Override
         public void map(Object key, Text value, Context context) {
+            //value is the row of data.tsv
             String record1 = value.toString();
             String[] record = record1.split("\\s+");
             String movieId = record[0];
+            //rounding the rating
             String rating  = Double.toString(Math.round(Double.parseDouble(record[1])));
             Configuration conf = context.getConfiguration();
+            //pvalue taken from the conf
             double pvalue = Double.parseDouble(conf.get("pvalue"));
+            //for each row, we assign the corresponding film to the bloom of the rating
             if(rating.compareTo("1.0")==0){
+                //function "addItem" adds the 1s to the selected bloom
+                //ff1 acts as a temporary array for the current row --> is not serializable
                 addItem(ff1, movieId,Integer.parseInt(conf.get("m"+rating)), pvalue);
+                //f1 is a serializable object, so I transform ff1 from (intWritable []) to (arrayIntWritable)
                 f1.set(ff1);
             }else if (rating.compareTo("2.0")==0){
                 addItem(ff2, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
@@ -163,7 +172,7 @@ public class BloomFilter {
          */
         @Override
         protected void cleanup(Context context) throws IOException, InterruptedException {
-
+            //we write in the context the temporary blooms of the mapper
             context.write(new Text("1.0"),f1);
             context.write(new Text("2.0"),f2);
             context.write(new Text("3.0"),f3);
@@ -179,7 +188,7 @@ public class BloomFilter {
     }
 
     /**
-     * Add MovieID inside IntWritable filters
+     * Used in the MAPPER to add MovieID inside IntWritable filters
      * @param newFilter: filter to populate
      * @param movieId: film's ids
      * @param dimension: m parameter to pass in the hash function
@@ -188,21 +197,13 @@ public class BloomFilter {
     public static void addItem(IntWritable[] newFilter, String movieId, int dimension, double pvalue){
         MurmurHash hasher = new MurmurHash();
         byte[] bytearr = movieId.getBytes();
+        //calculation of the number of hash functions
         int k= (int) -(Math.log(pvalue)/Math.log(2));
         k++;
         for (int i = 0; i < k; i++) {
+            //calculation of the position where set 1 with different seed
             int position = (hasher.hash(bytearr, 9,  i*50) % (dimension)+dimension)%dimension;
             newFilter[position].set(1);
-            /*
-            if (position < 0) {
-                position = (position + dimension)%dimension ;
-                newFilter[position].set(1);
-
-            } else {
-                newFilter[position].set(1);
-            }
-
-             */
         }
     }
 
@@ -211,7 +212,7 @@ public class BloomFilter {
             super(IntWritable.class);
         }
 
-
+        //redefinition of toString
         public String toString() {
             StringBuilder sb = new StringBuilder("");
             for (String s : super.toStrings()) {
@@ -235,13 +236,16 @@ public class BloomFilter {
          */
         public void reduce(Text key, Iterable<IntArrayWritable> values, Context context) throws IOException, InterruptedException {
             Configuration conf = context.getConfiguration();
+            //final array used to aggregate result of various mapper
             IntArrayWritable finalArray = new IntArrayWritable();
-
             IntWritable[] bitArray = new IntWritable[Integer.parseInt(conf.get("m"+key))];
             for (int i=0; i<bitArray.length;i++){
+                //set to 0 bitArray with the right m taken from config
                 bitArray[i]=new IntWritable(0);
             }
+
             for(IntArrayWritable tmp : values){
+                //do OR between BitArray (all 0's) and all bloom arrays of the corresponding rating (values)
                 orFilter(bitArray,tmp);
             }
             finalArray.set(bitArray);

@@ -4,8 +4,10 @@ from pyspark import SparkContext
 from operator import add
 import numpy as np
 import mmh3
+import math
 
 
+#round like java
 def roundRating(val):
     if val % 1 == 0.5:
         val = int(val) + 1
@@ -13,7 +15,7 @@ def roundRating(val):
         val = round(val)
     return val
 
-
+#do the hash depending also the number of k value (number of hash function for the bloom)
 def hash(filters, rating, movie_id):  # filtri, return della funzione , item successivo
     k = int(-(np.log(float(pvalue)) / np.log(2)))
     movie_id = movie_id.encode('utf-8')
@@ -91,10 +93,22 @@ def mapper(keyValueRDD):
         hash(filters, i[0], i[1])
     return filters.items()
 
+#arriva in ingresso array(filtro da controllare) ,  title , m(dimensione m)
+def isMember(title,array,m):
+    pvalue=sys.argv[3]
+    k= int(-(np.log(float(pvalue)) / np.log(2)))
+    for i in range(k):
+        position = mmh3.hash(title, 50 * i) % m
+        position = abs(position)
+        if(int(array[position])!=1):
+            return 0
+    return 1
+
+
 
 if __name__ == "__main__":
 
-    # parse command line arguments
+    # # parse command line arguments
     if len(sys.argv) < 3:
         print("Usage: Cloud-Computing project <input file> <output file> <pvalue>", file=sys.stderr)
         sys.exit(-1)
@@ -121,3 +135,74 @@ if __name__ == "__main__":
                                                                                          numPartitions=1).saveAsTextFile(
         sys.argv[2])
     sc.stop()
+
+    #test begin
+
+
+
+    print("________BEGIN TEST_______")
+    import pandas as pd
+    import numpy as np
+    import re
+
+    # connect to Hadoop Cluster
+    master = "yarn"
+    sc = SparkContext(master, "Cloud-Computing project")
+    rdd = sc.textFile("/cloudproject/Spark/part-00000")
+    llist = rdd.collect()
+    arr = []
+    i=0
+    # "creation of bloom" from work done by spark --> ora i bloom sono negli array
+    for line in llist:
+        tot = line.split('[')
+        # print(tot[2])
+        tot = tot[1].split(']')
+        # print(tot[0])
+        tmp = tot[0].split(',')
+        arr.append(tmp)
+        #print(len(arr[i]))
+        i = i + 1
+
+
+    FP = [0] * 10
+    TN = [0] * 10
+    N = [0] * 10
+    totale = 0
+    rdd2 = sc.textFile("/cloudproject/data.tsv")
+    inputRdd = rdd2.collect()
+    for line in inputRdd:
+        tot=line.split('\t')
+        title = tot[0]
+        rating=roundRating(float(tot[1]))
+        N[rating - 1] = N[rating - 1] + 1
+        totale = totale + 1
+        for i in range(10):
+            if (rating != i+1):
+                if (isMember(title, arr[i], len(arr[i]) - 1) == 1):
+                    # print(rating)
+                    FP[i] = FP[i] + 1
+                else:
+                    TN[i] = TN[i] + 1
+    print("ris = ")
+
+    for m in range(10):
+        print(FP[m] / ((totale - N[m])))
+
+
+
+
+
+
+
+
+
+
+    #df = rdd.map(lambda x: x.split("\t")).toDF()
+
+
+
+
+
+
+
+

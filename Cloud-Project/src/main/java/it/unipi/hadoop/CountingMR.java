@@ -25,6 +25,7 @@ public class CountingMR {
         public void map(final Object key, final Text value, final Context context) throws IOException, InterruptedException {
             String record = value.toString();
             String[] tokens = new String[2];
+            //we read the file and split the rating and the title_id
             tokens[0] = record.split("\t")[0];
             tokens[1] = record.split("\t")[1];
             tokens[1] = Double.toString(Math.round(Double.parseDouble(tokens[1])));
@@ -52,6 +53,7 @@ public class CountingMR {
             int n = 0,m;
             Configuration conf= context.getConfiguration();
             double pvalue = Double.parseDouble(conf.get("pvalue"));
+            //we count the number of film with specific rating
             for (final Text val : values) {
                 n++;
             }
@@ -59,6 +61,7 @@ public class CountingMR {
             String mstr = Integer.toString(m);
             String testo =  mstr ;
             Text result = new Text(testo);
+            //we create a file with rating and the value "m" , witch is the dimension of bloom
             context.write(key, result);
         }
     }

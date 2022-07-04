@@ -52,6 +52,7 @@ public class Driver {
         FileInputFormat.addInputPath(j1,new Path(otherArgs[0]));
         FileOutputFormat.setOutputPath(j1,outputPath);
 
+        //we wait the end of the first mapreduce
         j1.waitForCompletion(true);
 
         //JOB2
@@ -59,8 +60,7 @@ public class Driver {
         // rating   n   m   k
         ArrayList<String> listValues = new ArrayList<>();
         listValues= pickFile("hdfs:///cloudproject/counting/part-r-00000");
-        //Creo array con tutti i valori di m dei 10 filtri
-        //l'indice +1 equivale al rating
+        //create arrays with all m values of the 10 filters
         int[] takeValues = new int[10];
         for (int i=0; i<listValues.size(); i++){
             String row = listValues.get(i);
@@ -81,8 +81,9 @@ public class Driver {
         j2.setInputFormatClass(NLineInputFormat.class);
         NLineInputFormat.addInputPath(j2, new Path(otherArgs[0]));
         //N.tot =1,247,686      (8)  311922(4)
+        // we partition input in 4 parts
         j2.getConfiguration().setInt("mapreduce.input.lineinputformat.linespermap", 311922);
-
+        //we pass with config the m value calculated with first mapreduce
         j2.getConfiguration().setInt("m1.0",takeValues[0] );
         j2.getConfiguration().setInt("m2.0",takeValues[1] );
         j2.getConfiguration().setInt("m3.0",takeValues[2] );
@@ -101,11 +102,10 @@ public class Driver {
         //reducer
         j2.setOutputKeyClass(Text.class);
         j2.setOutputValueClass(Text.class);
-        //j2.setNumReduceTasks(0);
         Path outputPath1=new Path(otherArgs[1]);
         FileOutputFormat.setOutputPath(j2, outputPath1);
-        //System.exit(j2.waitForCompletion(true)?0:1);
         j2.waitForCompletion(true);
+        //we start the test
         TestBloom test = new TestBloom();
         test.testingFilters(j2.getConfiguration(), otherArgs[0], "hdfs:///cloudproject/BloomFilter/part-r-00000", otherArgs[2], takeValues);
 
@@ -113,7 +113,7 @@ public class Driver {
 
 
     /**
-     * Method to read MR first job output file
+     * Method to read MR first job output file, we use this method for the second job in the mapper
      * @param stringPath
      * @return
      */

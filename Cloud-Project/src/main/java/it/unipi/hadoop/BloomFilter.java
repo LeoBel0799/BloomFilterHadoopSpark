@@ -132,35 +132,24 @@ public class BloomFilter {
                 //function "addItem" adds the 1s to the selected bloom
                 //ff1 acts as a temporary array for the current row --> is not serializable
                 addItem(ff1, movieId,Integer.parseInt(conf.get("m"+rating)), pvalue);
-                //f1 is a serializable object, so I transform ff1 from (intWritable []) to (arrayIntWritable)
-                f1.set(ff1);
             }else if (rating.compareTo("2.0")==0){
                 addItem(ff2, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
-                f2.set(ff2);
             }else if (rating.compareTo("3.0")==0){
                 addItem(ff3, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
-                f3.set(ff3);
             }else if (rating.compareTo("4.0")==0){
                 addItem(ff4, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
-                f4.set(ff4);
             }else if (rating.compareTo("5.0")==0){
                 addItem(ff5, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
-                f5.set(ff5);
             }else if (rating.compareTo("6.0")==0){
                 addItem(ff6, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
-                f6.set(ff6);
             }else if (rating.compareTo("7.0")==0){
                 addItem(ff7, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
-                f7.set(ff7);
             }else if (rating.compareTo("8.0")==0){
                 addItem(ff8, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
-                f8.set(ff8);
             }else if (rating.compareTo("9.0")==0){
                 addItem(ff9, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
-                f9.set(ff9);
             }else if (rating.compareTo("10.0")==0){
                 addItem(ff10, movieId,Integer.parseInt(conf.get("m"+rating)),pvalue);
-                f10.set(ff10);
             }
         }
 
@@ -172,6 +161,17 @@ public class BloomFilter {
          */
         @Override
         protected void cleanup(Context context) throws IOException, InterruptedException {
+            //f1 is a serializable object, so I transform ff1 from (intWritable []) to (arrayIntWritable)
+            f1.set(ff1);
+            f2.set(ff2);
+            f3.set(ff3);
+            f4.set(ff4);
+            f5.set(ff5);
+            f6.set(ff6);
+            f7.set(ff7);
+            f8.set(ff8);
+            f9.set(ff9);
+            f10.set(ff10);
             //we write in the context the temporary blooms of the mapper
             context.write(new Text("1.0"),f1);
             context.write(new Text("2.0"),f2);

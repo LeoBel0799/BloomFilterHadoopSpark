@@ -4,7 +4,6 @@ from pyspark import SparkContext
 from operator import add
 import numpy as np
 import mmh3
-import math
 
 
 #round like java
@@ -25,12 +24,7 @@ def hash(filters, rating, movie_id):
     for i in range(0, k):
         #we change the seed to change the hash function
         position = mmh3.hash(movie_id, 50 * i) % size
-        if position < 0:
-            position = abs(position)
-            filters[rating][position] = 1
-        else:
-            filters[rating][position] = 1
-
+        filters[rating][position] = 1
 
 # calcolo m + concatenazione per avere rating m and counting
 def fillM(alist, pvalue):
@@ -101,7 +95,6 @@ def isMember(title,array,m):
     k= int(-(np.log(float(pvalue)) / np.log(2)))
     for i in range(k):
         position = mmh3.hash(title, 50 * i) % m
-        position = abs(position)
         if(int(array[position])!=1):
             return 0
     return 1
@@ -142,58 +135,56 @@ if __name__ == "__main__":
         sys.argv[2])
     sc.stop()
 
-   # import pandas as pd
-    # import numpy as np
-    # import re
-    # 
-    # # connect to Hadoop Cluster
-    # master = "yarn"
-    # sc = SparkContext(master, "Cloud-Computing project")
-    # #I take as input the output of mapreduce
-    # rdd = sc.textFile("/cloudproject/Spark/part-00000")
-    # llist = rdd.collect()
-    # arr = []
-    # i=0
-    # # "creation of bloom" from work done by spark
-    # #now we have 10 bloom filter derived from spark output
-    # for line in llist:
-    #     tot = line.split('[')
-    #     # print(tot[2])
-    #     tot = tot[1].split(']')
-    #     # print(tot[0])
-    #     tmp = tot[0].split(',')
-    #     arr.append(tmp)
-    #     #print(len(arr[i]))
-    #     i = i + 1
-    # 
-    # 
-    # FP = [0] * 10
-    # TN = [0] * 10
-    # N = [0] * 10
-    # totale = 0
-    # #read from input file data.tsv
-    # rdd2 = sc.textFile("/cloudproject/data.tsv")
-    # inputRdd = rdd2.collect()
-    # 
-    # for line in inputRdd:
-    #     #I read each line of the file and divide the rating by the title of the movie with regex
-    #     tot=line.split('\t')
-    #     title = tot[0]
-    #     rating=roundRating(float(tot[1]))
-    #     #films that match the rating
-    #     N[rating - 1] = N[rating - 1] + 1
-    #     totale = totale + 1
-    #     #for each film with a rating, check that it is not present in the other blooms, if there is an increase in the FP counter else the TN counter
-    #     for i in range(10):
-    #         if (rating != i+1):
-    #             if (isMember(title, arr[i], len(arr[i]) - 1) == 1):
-    #                 # print(rating)
-    #                 FP[i] = FP[i] + 1
-    #             else:
-    #                 TN[i] = TN[i] + 1
-    # print("P-value = "+pvalue + "\n")
-    # 
-    # print("############ BEGIN TEST #############")
-    # for m in range(10):
-    #     print("\nRating" + str(m)+ "FPR: " + str(FP[m] / ((totale - N[m]))) + " FP: " + str(FP[m])+ "\n")
-    # print("############ TEST ENDED #############")
+    #test begin
+
+
+
+
+
+    #connect to Hadoop Cluster
+    master = "yarn"
+    sc = SparkContext(master, "Cloud-Computing project")
+    #I take as input the output of mapreduce
+    rdd = sc.textFile("/cloudproject/Spark/part-00000")
+    llist = rdd.collect()
+    arr = []
+    i=0
+    # "creation of bloom" from work done by spark
+    #now we have 10 bloom filter derived from spark output
+    for line in llist:
+        tot = line.split('[')
+        tot = tot[1].split(']')
+        tmp = tot[0].split(',')
+        arr.append(tmp)
+        i = i + 1
+
+
+    FP = [0] * 10
+    TN = [0] * 10
+    N = [0] * 10
+    totale = 0
+     #read from input file data.tsv
+    rdd2 = sc.textFile("/cloudproject/data.tsv")
+    inputRdd = rdd2.collect()
+
+    for line in inputRdd:
+         #I read each line of the file and divide the rating by the title of the movie with regex
+         tot=line.split('\t')
+         title = tot[0]
+         rating=roundRating(float(tot[1]))
+         #films that match the rating
+         N[rating - 1] = N[rating - 1] + 1
+         totale = totale + 1
+         #for each film with a rating, check that it is not present in the other blooms, if there is an increase in the FP counter else the TN counter
+         for i in range(10):
+             if (rating != i+1):
+                 if (isMember(title, arr[i], len(arr[i]) - 1) == 1):
+                     FP[i] = FP[i] + 1
+                 else:
+                     TN[i] = TN[i] + 1
+    print("P-value = "+pvalue + "\n")
+
+    print("############ BEGIN TEST #############")
+    for m in range(10):
+         print("\nRating" + str(m)+ " FPR: " + str(FP[m] / ((totale - N[m]))) + " FP: " + str(FP[m])+ "\n")
+    print("############ TEST ENDED #############")

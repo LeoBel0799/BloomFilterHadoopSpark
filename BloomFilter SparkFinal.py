@@ -16,12 +16,14 @@ def roundRating(val):
     return val
 
 #do the hash depending also the number of k value (number of hash function for the bloom)
-def hash(filters, rating, movie_id):  # filtri, return della funzione , item successivo
+def hash(filters, rating, movie_id):
+    #we calculate k
     k = int(-(np.log(float(pvalue)) / np.log(2)))
     movie_id = movie_id.encode('utf-8')
     size = list_m[rating - 1]
-
+    #we place a 1, in the k positions based on the number of hash functions
     for i in range(0, k):
+        #we change the seed to change the hash function
         position = mmh3.hash(movie_id, 50 * i) % size
         if position < 0:
             position = abs(position)
@@ -41,7 +43,7 @@ def fillM(alist, pvalue):
     listm = list(m)
     return listm
 
-
+#let's do the logical OR of the filters, used in the reducer
 def orFilter(filtro1, filtro2):
     count = -1
 
@@ -51,7 +53,7 @@ def orFilter(filtro1, filtro2):
             filtro1[count] = 1
     return filtro1
 
-
+#we initialize the blooms with all 0s and the correct size calculated by the function above
 def initFilter():
     f1 = []
     for i in range(list_m.__getitem__(0)):
@@ -86,14 +88,14 @@ def initFilter():
     filters = {1: f1, 2: f2, 3: f3, 4: f4, 5: f5, 6: f6, 7: f7, 8: f8, 9: f9, 10: f10}
     return filters
 
-
+#we read each line of the input file and put the movie title in the right bloom based on the rating
 def mapper(keyValueRDD):
     filters = initFilter()
     for i in keyValueRDD:
         hash(filters, i[0], i[1])
     return filters.items()
 
-#arriva in ingresso array(filtro da controllare) ,  title , m(dimensione m)
+#used in tests, check if the film is present in the bloom
 def isMember(title,array,m):
     pvalue=sys.argv[3]
     k= int(-(np.log(float(pvalue)) / np.log(2)))
@@ -118,91 +120,80 @@ if __name__ == "__main__":
     master = "yarn"
     sc = SparkContext(master, "Cloud-Computing project")
 
-    # create input file RDD
+    # create input file RDD and  divide it into 4 parts
     inputRDD = sc.textFile(inputFile, 4)
 
-    # Creo RDD chiave- valore con rating approsimato
+    #create rdd with key value (film_id-rating) with the approximate rating
+    #this value is the input for the mapper
     keyValueRDD = inputRDD.map(lambda x: (roundRating(float(x.split("\t")[1])), x.split("\t")[0]),
                                preservesPartitioning=True)
 
-    # # Salva chiave: Rating e item per ogni voto
+    #for each movie in the rating assigns 1, and then counts how many movies there are for each rating. We will need this value to size the blooms
+    #map: create map rating:1 --> reducebykey: aggregate all film with rating and do sum --> sortByKey : sort
+    #we work with 4 partitions
     valuesM = keyValueRDD.distinct().keys().map(lambda x: (x, 1)).reduceByKey(add).sortByKey()
-    # # tuple con rating,count and m
+    #we calculate the sizing for the bloom filters, given the number of elements and the pvalue
     list_m = fillM(valuesM.collect(), float(pvalue))
 
-    # Fase MAPP
+    #mapPartition : applies the function mapper to each partition of the RDD
+    #the mapper creates the bloom filters with the given rdd partition, then the reducer applies the logical OR function and aggregates the results
     finalRDD = keyValueRDD.mapPartitions(mapper, preservesPartitioning=True).reduceByKey(lambda x, y: orFilter(x, y),
                                                                                          numPartitions=1).saveAsTextFile(
         sys.argv[2])
     sc.stop()
 
-    #test begin
-
-
-
-    print("________BEGIN TEST_______")
-    import pandas as pd
-    import numpy as np
-    import re
-
-    # connect to Hadoop Cluster
-    master = "yarn"
-    sc = SparkContext(master, "Cloud-Computing project")
-    rdd = sc.textFile("/cloudproject/Spark/part-00000")
-    llist = rdd.collect()
-    arr = []
-    i=0
-    # "creation of bloom" from work done by spark --> ora i bloom sono negli array
-    for line in llist:
-        tot = line.split('[')
-        # print(tot[2])
-        tot = tot[1].split(']')
-        # print(tot[0])
-        tmp = tot[0].split(',')
-        arr.append(tmp)
-        #print(len(arr[i]))
-        i = i + 1
-
-
-    FP = [0] * 10
-    TN = [0] * 10
-    N = [0] * 10
-    totale = 0
-    rdd2 = sc.textFile("/cloudproject/data.tsv")
-    inputRdd = rdd2.collect()
-    for line in inputRdd:
-        tot=line.split('\t')
-        title = tot[0]
-        rating=roundRating(float(tot[1]))
-        N[rating - 1] = N[rating - 1] + 1
-        totale = totale + 1
-        for i in range(10):
-            if (rating != i+1):
-                if (isMember(title, arr[i], len(arr[i]) - 1) == 1):
-                    # print(rating)
-                    FP[i] = FP[i] + 1
-                else:
-                    TN[i] = TN[i] + 1
-    print("ris = ")
-
-    for m in range(10):
-        print(FP[m] / ((totale - N[m])))
-
-
-
-
-
-
-
-
-
-
-    #df = rdd.map(lambda x: x.split("\t")).toDF()
-
-
-
-
-
-
-
-
+   # import pandas as pd
+    # import numpy as np
+    # import re
+    # 
+    # # connect to Hadoop Cluster
+    # master = "yarn"
+    # sc = SparkContext(master, "Cloud-Computing project")
+    # #I take as input the output of mapreduce
+    # rdd = sc.textFile("/cloudproject/Spark/part-00000")
+    # llist = rdd.collect()
+    # arr = []
+    # i=0
+    # # "creation of bloom" from work done by spark
+    # #now we have 10 bloom filter derived from spark output
+    # for line in llist:
+    #     tot = line.split('[')
+    #     # print(tot[2])
+    #     tot = tot[1].split(']')
+    #     # print(tot[0])
+    #     tmp = tot[0].split(',')
+    #     arr.append(tmp)
+    #     #print(len(arr[i]))
+    #     i = i + 1
+    # 
+    # 
+    # FP = [0] * 10
+    # TN = [0] * 10
+    # N = [0] * 10
+    # totale = 0
+    # #read from input file data.tsv
+    # rdd2 = sc.textFile("/cloudproject/data.tsv")
+    # inputRdd = rdd2.collect()
+    # 
+    # for line in inputRdd:
+    #     #I read each line of the file and divide the rating by the title of the movie with regex
+    #     tot=line.split('\t')
+    #     title = tot[0]
+    #     rating=roundRating(float(tot[1]))
+    #     #films that match the rating
+    #     N[rating - 1] = N[rating - 1] + 1
+    #     totale = totale + 1
+    #     #for each film with a rating, check that it is not present in the other blooms, if there is an increase in the FP counter else the TN counter
+    #     for i in range(10):
+    #         if (rating != i+1):
+    #             if (isMember(title, arr[i], len(arr[i]) - 1) == 1):
+    #                 # print(rating)
+    #                 FP[i] = FP[i] + 1
+    #             else:
+    #                 TN[i] = TN[i] + 1
+    # print("P-value = "+pvalue + "\n")
+    # 
+    # print("############ BEGIN TEST #############")
+    # for m in range(10):
+    #     print("\nRating" + str(m)+ "FPR: " + str(FP[m] / ((totale - N[m]))) + " FP: " + str(FP[m])+ "\n")
+    # print("############ TEST ENDED #############")

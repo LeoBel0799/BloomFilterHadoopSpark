@@ -98,7 +98,7 @@ public class TestBloom {
             //compute the false positive rate
             double fpr = fp[i] / (numTotFilms - numFilmRating[i]);
             int j = i + 1;
-            System.out.println("Film rating: " + j +"   FPR = " + fpr + "FP = " + fp[i]);
+            System.out.println("Film rating: " + j +"   FPR = " + fpr + " FP = " + fp[i]);
         }
         System.out.println("\n######### TEST ENDED #########\n");
 
